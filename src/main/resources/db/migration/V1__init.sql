@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS products (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  price DECIMAL(15,2) NOT NULL,
+  stock INT NOT NULL,
+  created_at TIMESTAMP(6) NOT NULL,
+  updated_at TIMESTAMP(6) NOT NULL
+) ENGINE=InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
