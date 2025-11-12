@@ -1,5 +1,9 @@
 package com.example.ordermanager.product;
 
+import com.example.ordermanager.product.dto.ProductDTO;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -11,23 +15,21 @@ public class ProductController {
     public ProductController(ProductService service) { this.service = service; }
 
     @GetMapping
-    public List<Product> list() {
-        return service.list();
+    public Page<Product> list(@RequestParam(required = false) String name, Pageable pageable) {
+        return service.list(name, pageable);
     }
 
     @GetMapping("/{id}")
-    public Product get(@PathVariable Long id) {
-        return service.get(id);
-    }
+    public Product get(@PathVariable Long id) { return service.get(id); }
 
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody Product p) {
-        return ResponseEntity.ok(service.create(p));
+    public ResponseEntity<Product> create(@RequestBody @Valid ProductDTO dto) {
+        return ResponseEntity.ok(service.create(dto));
     }
 
     @PutMapping("/{id}")
-    public Product update(@PathVariable Long id, @RequestBody Product p) {
-        return service.update(id, p);
+    public Product update(@PathVariable Long id, @RequestBody @Valid ProductDTO dto) {
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
