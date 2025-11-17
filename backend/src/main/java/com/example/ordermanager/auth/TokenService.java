@@ -3,6 +3,7 @@ package com.example.ordermanager.auth;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -10,24 +11,27 @@ import java.util.Date;
 @Service
 public class TokenService {
 
-    private static final String SECRET = "12345678901234567890123456789012"; // 32 chars
-    private static final long EXPIRATION = 1000 * 60 * 60 * 24; // 24 horas
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private Long expiration;
 
     public String generateToken(String email) {
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + EXPIRATION);
+        Date expirationDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(now)
-                .setExpiration(expiration)
-                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()), SignatureAlgorithm.HS256)
+                .setExpiration(expirationDate)
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET.getBytes())
+                .setSigningKey(secret.getBytes())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()

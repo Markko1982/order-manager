@@ -1,6 +1,7 @@
 package com.example.ordermanager.product;
 
 import jakarta.persistence.*;
+import com.example.ordermanager.category.Category;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -19,6 +20,10 @@ public class Product {
 
     @Column(nullable=false)
     private Integer stock;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = true)
+    private Category category;
 
     @Column(nullable=false, updatable=false)
     private Instant createdAt;
@@ -51,4 +56,6 @@ public class Product {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
 }

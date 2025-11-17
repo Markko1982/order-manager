@@ -41,6 +41,7 @@ public class AuthController {
         }
 
         User user = new User();
+        user.setName(data.name());
         user.setEmail(data.email());
         user.setPassword(passwordEncoder.encode(data.password()));
         user.setRole(UserRole.USER);
@@ -59,7 +60,7 @@ public class AuthController {
         Authentication auth = authenticationManager.authenticate(usernamePassword);
         User user = (User) auth.getPrincipal();
 
-        String token = tokenService.generateToken(user);
+        String token = tokenService.generateToken(user.getEmail());
 
         AuthResponseDTO response = new AuthResponseDTO(token, "Bearer");
         return ResponseEntity.ok(response);
