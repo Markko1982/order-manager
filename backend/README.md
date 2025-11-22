@@ -1,216 +1,368 @@
-# Order Manager - Sistema de Gerenciamento de Pedidos
+# Order Manager
 
-## 📋 Descrição
-Projeto Java Spring Boot de treinamento para gerenciamento de pedidos e produtos.
+API REST em **Java / Spring Boot** para gerenciamento de **produtos** e **pedidos** de uma loja simples, com autenticação via **JWT** e testes de integração.
 
-## 🛠️ Tecnologias Utilizadas
-- **Java 17**
-- **Spring Boot 3.2.5**
-- **Spring Data JPA**
-- **Spring Validation**
-- **MySQL**
-- **Flyway** (migrations de banco de dados)
-- **Maven**
+O sistema permite:
 
-## ✅ Correções Aplicadas
+- cadastrar e gerenciar produtos;
+- criar pedidos com lista de itens (produto + quantidade);
+- validar estoque automaticamente;
+- calcular o valor total do pedido;
+- atualizar o status do pedido;
+- autenticar usuários com **JWT**;
+- retornar erros em formato JSON padronizado;
+- garantir o comportamento através de **testes de integração**.
 
-### Problemas Resolvidos
-1. **Dependência de Validação**: Adicionada a dependência `spring-boot-starter-validation` que estava faltando
-2. **Classe Desnecessária**: Removida a classe `App.java` que não era utilizada
-3. **Java 17**: Configurado ambiente com JDK 17
+> Projeto focado em estudos, estruturado para ser usado como **portfólio**.
 
-## 📦 Estrutura do Projeto
+---
 
-```
-order-manager/
-├── src/main/
-│   ├── java/com/example/ordermanager/
-│   │   ├── OrderManagerApplication.java      # Classe principal
-│   │   ├── common/
-│   │   │   └── ApiExceptionHandler.java      # Tratamento global de exceções
-│   │   ├── controller/
-│   │   │   └── HealthController.java         # Endpoint de health check
-│   │   └── product/
-│   │       ├── Product.java                  # Entidade JPA
-│   │       ├── ProductController.java        # REST Controller
-│   │       ├── ProductRepository.java        # Repository JPA
-│   │       ├── ProductService.java           # Lógica de negócio
-│   │       └── dto/
-│   │           └── ProductDTO.java           # Data Transfer Object
-│   └── resources/
-│       ├── application.properties            # Configurações da aplicação
-│       └── db/migration/
-│           └── V1__init.sql                  # Migration inicial do banco
-└── pom.xml                                   # Dependências Maven
-```
+## ⚙️ Tecnologias
 
-## 🚀 Como Executar
+- Java 17  
+- Spring Boot 3  
+- Spring Web  
+- Spring Data JPA  
+- Spring Security + JWT  
+- Bean Validation (Jakarta Validation)  
+- MySQL + Flyway  
+- Maven  
+- JUnit 5 + Spring Boot Test + MockMvc  
 
-### Pré-requisitos
-- Java 17 ou superior
-- MySQL 8.0 ou superior
-- Maven 3.6 ou superior
+---
 
-### 1. Configurar o Banco de Dados
+## 🧱 Estrutura (resumo)
 
-Crie o banco de dados e o usuário no MySQL:
+    src/main/java/com/example/ordermanager
+    ├── OrderManagerApplication.java
+    ├── auth
+    │   ├── SecurityConfig.java
+    │   ├── JwtFilter.java
+    │   ├── AuthController.java
+    │   ├── User.java / Role.java
+    │   └── UserDetailsServiceImpl.java
+    ├── common
+    │   └── ApiExceptionHandler.java
+    ├── product
+    │   ├── Product.java
+    │   ├── dto/ProductDTO.java
+    │   ├── ProductController.java
+    │   ├── ProductService.java
+    │   └── ProductRepository.java
+    └── order
+        ├── Order.java
+        ├── OrderItem.java
+        ├── OrderStatus.java
+        ├── dto/
+        │   ├── CreateOrderDTO.java
+        │   ├── OrderItemResponseDTO.java
+        │   └── OrderResponseDTO.java
+        ├── OrderController.java
+        ├── OrderService.java
+        ├── OrderRepository.java
+        └── OrderItemRepository.java
 
-```sql
-CREATE DATABASE order_manager;
-CREATE USER 'order_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
-GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
-FLUSH PRIVILEGES;
-```
+Migrations do banco:
 
-### 2. Configurar application.properties
+    src/main/resources/db/migration
+    └── V1__init.sql
 
-Edite o arquivo `src/main/resources/application.properties` se necessário:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/order_manager?useSSL=false&serverTimezone=UTC
-spring.datasource.username=order_user
-spring.datasource.password=ChangeMe123!
-```
-
-### 3. Compilar o Projeto
-
-```bash
-mvn clean package
-```
-
-### 4. Executar a Aplicação
-
-```bash
-java -jar target/order-manager-0.0.1-SNAPSHOT.jar
-```
-
-Ou usando Maven:
-
-```bash
-mvn spring-boot:run
-```
-
-A aplicação estará disponível em: `http://localhost:8080`
-
-## 📡 Endpoints da API
-
-### Health Check
-```
-GET /health
-```
-Retorna o status da aplicação.
-
-### Produtos
-
-#### Listar Produtos (com paginação)
-```
-GET /api/products?page=0&size=10
-GET /api/products?name=produto&page=0&size=10
-```
-
-#### Buscar Produto por ID
-```
-GET /api/products/{id}
-```
-
-#### Criar Produto
-```
-POST /api/products
-Content-Type: application/json
-
-{
-  "name": "Notebook Dell",
-  "price": 3500.00,
-  "stock": 10
-}
-```
-
-#### Atualizar Produto
-```
-PUT /api/products/{id}
-Content-Type: application/json
-
-{
-  "name": "Notebook Dell Atualizado",
-  "price": 3200.00,
-  "stock": 15
-}
-```
-
-#### Deletar Produto
-```
-DELETE /api/products/{id}
-```
-
-## 🔍 Validações
-
-O sistema valida automaticamente os dados de entrada:
-
-- **name**: Obrigatório, máximo 120 caracteres
-- **price**: Obrigatório, deve ser >= 0
-- **stock**: Obrigatório, deve ser >= 0
+---
 
 ## 🗄️ Banco de Dados
 
-O Flyway gerencia automaticamente as migrations do banco de dados. A tabela `products` é criada automaticamente na primeira execução.
+Exemplo de criação de banco/usuário no MySQL:
 
-### Estrutura da Tabela Products
+    CREATE DATABASE order_manager;
+    CREATE USER 'order_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
+    GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
+    FLUSH PRIVILEGES;
 
-| Campo      | Tipo           | Descrição                    |
-|------------|----------------|------------------------------|
-| id         | BIGINT         | Chave primária (auto-increment) |
-| name       | VARCHAR(120)   | Nome do produto              |
-| price      | DECIMAL(15,2)  | Preço do produto             |
-| stock      | INT            | Quantidade em estoque        |
-| created_at | TIMESTAMP(6)   | Data de criação              |
-| updated_at | TIMESTAMP(6)   | Data de atualização          |
+Configuração básica (`src/main/resources/application.properties`):
+
+    spring.datasource.url=jdbc:mysql://localhost:3306/order_manager?useSSL=false&serverTimezone=UTC
+    spring.datasource.username=order_user
+    spring.datasource.password=ChangeMe123!
+
+    spring.jpa.hibernate.ddl-auto=validate
+    spring.jpa.show-sql=true
+
+    spring.flyway.enabled=true
+
+---
+
+## ▶️ Como Rodar
+
+Dentro da pasta `backend`:
+
+1. Compilar:
+
+       mvn clean package
+
+2. Subir a aplicação:
+
+       mvn spring-boot:run
+
+A API ficará em:
+
+    http://localhost:8080
+
+Health check rápido:
+
+    GET /health
+
+---
+
+## 🔐 Autenticação (JWT)
+
+### Registro de usuário
+
+    POST /api/auth/register
+    Content-Type: application/json
+
+    {
+      "name":   "Test User",
+      "email":  "teste@example.com",
+      "password": "senha123"
+    }
+
+### Login
+
+    POST /api/auth/login
+    Content-Type: application/json
+
+    {
+      "email":  "teste@example.com",
+      "password": "senha123"
+    }
+
+Resposta (exemplo):
+
+    {
+      "token": "<JWT_AQUI>",
+      "type": "Bearer"
+    }
+
+Usar o token nos demais endpoints protegidos:
+
+    Authorization: Bearer <JWT_AQUI>
+
+Rotas públicas:
+
+- POST /api/auth/register  
+- POST /api/auth/login  
+- GET  /health  
+
+Todas as outras rotas exigem JWT válido.
+
+---
+
+## 📦 Produtos
+
+### Regras
+
+- CRUD completo.
+- Paginação e filtro opcional por nome.
+- Validações:
+  - name: obrigatório, até 120 caracteres;
+  - price: obrigatório, >= 0;
+  - stock: obrigatório, >= 0.
+
+### Endpoints
+
+Listar (paginado):
+
+    GET /api/products?page=0&size=10
+    GET /api/products?name=mouse&page=0&size=10
+
+Buscar por ID:
+
+    GET /api/products/{id}
+
+Criar:
+
+    POST /api/products
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "name":  "Teclado Mecânico",
+      "price": 250.00,
+      "stock": 10
+    }
+
+Atualizar:
+
+    PUT /api/products/{id}
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "name":  "Teclado Mecânico RGB",
+      "price": 270.00,
+      "stock": 8
+    }
+
+Deletar:
+
+    DELETE /api/products/{id}
+    Authorization: Bearer <token>
+
+Erros comuns (corpo JSON):
+
+- 404 – Product not found  
+- 400 – Dados inválidos (campos com erro)
+
+---
+
+## 🧾 Pedidos
+
+Um pedido é composto por:
+
+- cabeçalho (`Order`): id, número, status, total, datas;
+- itens (`OrderItem`): produto, quantidade, preço unitário, subtotal.
+
+### Regras de negócio
+
+- Ao criar pedido:
+  - produto deve existir;
+  - verificar **estoque suficiente**;
+  - decrementar estoque dos produtos;
+  - calcular valor total do pedido;
+  - status inicial: `PENDING`.
+
+- Atualização de status:  
+  `PENDING`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`.
+
+### Endpoints
+
+Criar pedido:
+
+    POST /api/orders
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "items": [
+        { "productId": 1, "quantity": 2 },
+        { "productId": 2, "quantity": 1 }
+      ]
+    }
+
+Possíveis respostas:
+
+- 201 – criado com sucesso  
+- 404 – produto não encontrado  
+
+      { "error": "Produto não encontrado", "status": 404 }
+
+- 409 – estoque insuficiente  
+
+      { "error": "Estoque insuficiente para o produto: Teclado Mecânico", "status": 409 }
+
+Buscar pedido por ID:
+
+    GET /api/orders/{id}
+    Authorization: Bearer <token>
+
+Resposta (exemplo):
+
+    {
+      "id": 1,
+      "orderNumber": "ORD-1763429365028",
+      "status": "PENDING",
+      "total": 650.00,
+      "items": [
+        {
+          "productId": 1,
+          "productName": "Teclado Mecânico",
+          "quantity": 2,
+          "unitPrice": 250.00,
+          "subtotal": 500.00
+        },
+        {
+          "productId": 2,
+          "productName": "Mouse Gamer",
+          "quantity": 1,
+          "unitPrice": 150.00,
+          "subtotal": 150.00
+        }
+      ]
+    }
+
+Listar pedidos (paginado):
+
+    GET /api/orders?page=0&size=20
+    Authorization: Bearer <token>
+
+Atualizar status:
+
+    PUT /api/orders/{id}/status?status=CONFIRMED
+    Authorization: Bearer <token>
+
+Cancelar / deletar:
+
+    DELETE /api/orders/{id}
+    Authorization: Bearer <token>
+
+Se o pedido não existir:
+
+    { "error": "Pedido não encontrado", "status": 404 }
+
+---
+
+## ❗ Tratamento de Erros
+
+A classe `ApiExceptionHandler` centraliza o tratamento de exceções e devolve JSON padronizado, por exemplo:
+
+    {
+      "error": "Pedido não encontrado",
+      "status": 404
+    }
+
+Para erros de validação:
+
+    {
+      "status": 400,
+      "error": "Validation failed",
+      "fields": {
+        "name": "não pode ser nulo",
+        "price": "deve ser maior ou igual a 0"
+      }
+    }
+
+---
 
 ## 🧪 Testes
 
-Para executar os testes:
+Executar testes:
 
-```bash
-mvn test
-```
+    mvn test
 
-## 📝 Próximos Passos Sugeridos
+Principais testes:
 
-1. **Implementar módulo de Pedidos (Orders)**
-   - Criar entidade Order
-   - Relacionamento com Product
-   - Endpoints CRUD para pedidos
+- `ProductControllerTest`
+  - testa CRUD de produtos via MockMvc.
+- `OrderControllerTest`
+  - testa criação de pedidos;
+  - erro de estoque insuficiente (HTTP 409);
+  - busca de pedido por ID, etc.
 
-2. **Implementar módulo de Clientes (Customers)**
-   - Criar entidade Customer
-   - Relacionamento com Order
-   - Endpoints CRUD para clientes
+Os testes usam `@SpringBootTest`, `@AutoConfigureMockMvc` e transações para isolar o estado.
 
-3. **Adicionar Autenticação e Autorização**
-   - Spring Security
-   - JWT tokens
-   - Roles e permissões
+---
 
-4. **Implementar Testes Unitários e de Integração**
-   - JUnit 5
-   - Mockito
-   - TestContainers para testes com MySQL
+## 🚀 Ideias de Evolução
 
-5. **Adicionar Documentação da API**
-   - SpringDoc OpenAPI (Swagger)
-   - Documentação interativa
+- Documentação da API com Swagger (SpringDoc OpenAPI).
+- Módulo de clientes (Customer) e relacionamento com pedidos.
+- Filtros avançados na listagem de pedidos.
+- Mais testes unitários e de integração.
+- Dockerfile + docker-compose (app + MySQL).
 
-6. **Implementar Cache**
-   - Spring Cache
-   - Redis
+---
 
-7. **Adicionar Logs Estruturados**
-   - Logback
-   - ELK Stack
+## 📌 Observação
 
-## 🤝 Contribuindo
-
-Este é um projeto de treinamento. Sinta-se livre para fazer fork e experimentar!
-
-## 📄 Licença
-
-Projeto de treinamento - uso livre para fins educacionais.
+Projeto desenvolvido para estudo guiado (mentoria).  
+Pode ser usado como **portfólio** no GitHub / LinkedIn e como base para entrevistas técnicas.

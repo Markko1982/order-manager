@@ -26,7 +26,8 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 200)
     private String password;
 
-    @Column(name = "role", nullable = false, columnDefinition = "VARCHAR(20)")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
     private UserRole role;
 
     @Column(nullable = false, updatable = false)
