@@ -7,7 +7,10 @@ import com.example.ordermanager.order.dto.OrderResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -19,44 +22,47 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    // ============================
+    // ================================
     // CRIAR PEDIDO
-    // ============================
+    // ================================
     @PostMapping
-    public OrderResponseDTO create(@RequestBody @Valid CreateOrderDTO dto) {
-        return orderService.create(dto);
+    public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrderDTO dto) {
+        OrderResponseDTO response = orderService.create(dto);
+        Long id = response.getId();
+        URI location = URI.create("/api/orders/" + id);
+        return ResponseEntity.created(location).body(response);
     }
 
-    // ============================
+    // ================================
     // BUSCAR POR ID
-    // ============================
+    // ================================
     @GetMapping("/{id}")
     public OrderResponseDTO findById(@PathVariable Long id) {
         return orderService.findById(id);
     }
 
-    // ============================
+    // ================================
     // LISTAR COM PAGINAÇÃO
-    // ============================
+    // ================================
     @GetMapping
     public Page<OrderResponseDTO> findAll(Pageable pageable) {
         return orderService.findAll(pageable);
     }
 
-    // ============================
+    // ================================
     // ATUALIZAR STATUS
-    // ============================
+    // ================================
     @PutMapping("/{id}/status")
-    public void updateStatus(@PathVariable Long id,
-                             @RequestParam OrderStatus status) {
+    public void updateStatus(@PathVariable Long id, @RequestParam OrderStatus status) {
         orderService.updateStatus(id, status);
     }
 
-    // ============================
+    // ================================
     // DELETAR / CANCELAR PEDIDO
-    // ============================
+    // ================================
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         orderService.delete(id);
+        return ResponseEntity.noContent().build(); // 204
     }
 }

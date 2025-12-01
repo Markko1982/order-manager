@@ -48,7 +48,11 @@ public class OrderService {
                     .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado: " + itemDTO.getProductId()));
 
             if (product.getStock() < itemDTO.getQuantity()) {
-                throw new IllegalStateException("Estoque insuficiente para o produto: " + product.getName());
+                throw new IllegalStateException(
+                        "Estoque insuficiente para o produto '" + product.getName() +
+                        "'. Disponível: " + product.getStock() +
+                        ", solicitado: " + itemDTO.getQuantity()
+                );
             }
 
             product.setStock(product.getStock() - itemDTO.getQuantity());
@@ -61,6 +65,11 @@ public class OrderService {
         }
 
         order.setTotalAmount(total);
+        // regra de negócio: valor máximo permitido por pedido
+        if (total.compareTo(new java.math.BigDecimal("1000.00")) > 0) {
+            throw new IllegalStateException("Valor máximo do pedido excedido. Total calculado: " + total);
+        }
+
 
         Order saved = orderRepository.save(order);
 
@@ -89,13 +98,31 @@ public class OrderService {
     // ATUALIZAR STATUS
     // ============================
     @Transactional
-    public void updateStatus(Long id, OrderStatus newStatus) {
+        public void updateStatus(Long id, OrderStatus newStatus) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado: " + id));
+
+        OrderStatus currentStatus = order.getStatus();
+
+        // Regras de transição:
+        // - PENDING -> PAID
+        // - PENDING -> CANCELED
+        // - Se já estiver PAID ou CANCELED, não pode mudar mais
+        if (currentStatus == OrderStatus.PENDING) {
+            if (newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELED) {
+                throw new IllegalStateException("Transição de status inválida: " + currentStatus + " -> " + newStatus);
+            }
+        } else {
+            // PAID ou CANCELED não podem ir para outro status
+            if (newStatus != currentStatus) {
+                throw new IllegalStateException("Pedido já está " + currentStatus + " e não pode ser alterado.");
+            }
+        }
 
         order.setStatus(newStatus);
         orderRepository.save(order);
     }
+
 
     // ============================
     // DELETAR PEDIDO
