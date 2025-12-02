@@ -366,3 +366,10 @@ Os testes usam `@SpringBootTest`, `@AutoConfigureMockMvc` e transações para is
 
 Projeto desenvolvido para estudo guiado (mentoria).  
 Pode ser usado como **portfólio** no GitHub / LinkedIn e como base para entrevistas técnicas.
+
+## 📌 Documentação da API
+
+A documentação detalhada dos endpoints (autenticação, produtos, pedidos, erros e exemplos de JSON)
+está em:
+
+- `backend/README.md`
