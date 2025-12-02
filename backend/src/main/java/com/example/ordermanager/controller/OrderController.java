@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.PageImpl;
+import java.util.List;
 
 import java.net.URI;
 
@@ -41,13 +43,31 @@ public class OrderController {
         return orderService.findById(id);
     }
 
-    // ================================
-    // LISTAR COM PAGINAÇÃO
-    // ================================
+    // ==============================
+    // LISTAR COM PAGINAÇÃO (COM FILTRO OPCIONAL DE STATUS)
+    // ==============================
     @GetMapping
-    public Page<OrderResponseDTO> findAll(Pageable pageable) {
-        return orderService.findAll(pageable);
+    public Page<OrderResponseDTO> findAll(
+            @RequestParam(required = false) OrderStatus status,
+            Pageable pageable) {
+
+        // Busca paginada normal
+        Page<OrderResponseDTO> page = orderService.findAll(pageable);
+
+        // Se não foi passado status, devolve tudo igual antes
+        if (status == null) {
+            return page;
+        }
+
+        // Filtra apenas os pedidos com o status desejado
+        List<OrderResponseDTO> filtered = page.getContent().stream()
+                .filter(order -> order.getStatus() == status)
+                .toList();
+
+        // Monta uma nova Page com os resultados filtrados
+        return new PageImpl<>(filtered, pageable, filtered.size());
     }
+
 
     // ================================
     // ATUALIZAR STATUS
