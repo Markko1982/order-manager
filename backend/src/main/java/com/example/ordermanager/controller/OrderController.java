@@ -27,13 +27,13 @@ public class OrderController {
     // ================================
     // CRIAR PEDIDO
     // ================================
+
     @PostMapping
     public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrderDTO dto) {
         OrderResponseDTO response = orderService.create(dto);
-        Long id = response.getId();
-        URI location = URI.create("/api/orders/" + id);
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.ok(response);
     }
+
 
     // ================================
     // BUSCAR POR ID
