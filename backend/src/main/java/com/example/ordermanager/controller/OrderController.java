@@ -46,6 +46,8 @@ public class OrderController {
     // ==============================
     // LISTAR COM PAGINAÇÃO (COM FILTRO OPCIONAL DE STATUS)
     // ==============================
+    // Lista pedidos com filtro opcional por status (PENDING, PAID, CANCELED)
+
     @GetMapping
     public Page<OrderResponseDTO> findAll(
             @RequestParam(required = false) OrderStatus status,
