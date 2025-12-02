@@ -1,5 +1,6 @@
 package com.example.ordermanager.order;
 
+import org.springframework.security.test.context.support.WithMockUser;
 import com.example.ordermanager.product.Product;
 import com.example.ordermanager.product.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,10 +20,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.test.context.support.WithMockUser;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
+@WithMockUser(username = "admin@test.com", roles = "ADMIN")
 class OrderControllerTest {
 
     @Autowired
@@ -39,7 +43,7 @@ class OrderControllerTest {
         orderRepository.deleteAll();
         productRepository.deleteAll();
     }
-
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
     @Test
     void createOrder_returnsOkAndCalculatesTotal() throws Exception {
         Product p1 = new Product();
