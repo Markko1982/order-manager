@@ -47,12 +47,9 @@ public class OrderService {
             Product product = productRepository.findById(itemDTO.getProductId())
                     .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado: " + itemDTO.getProductId()));
 
-            if (product.getStock() < itemDTO.getQuantity()) {
-                throw new IllegalStateException(
-                        "Estoque insuficiente para o produto '" + product.getName() +
-                        "'. Disponível: " + product.getStock() +
-                        ", solicitado: " + itemDTO.getQuantity()
-                );
+                if (product.getStock() < itemDTO.getQuantity()) {
+    throw new IllegalStateException("Estoque insuficiente para o produto: " + product.getName());
+                
             }
 
             product.setStock(product.getStock() - itemDTO.getQuantity());
@@ -104,16 +101,20 @@ public class OrderService {
 
         OrderStatus currentStatus = order.getStatus();
 
-        // Regras de transição:
-        // - PENDING -> PAID
-        // - PENDING -> CANCELED
-        // - Se já estiver PAID ou CANCELED, não pode mudar mais
+             // Regras de transição:
+        // - PENDING   -> CONFIRMED ou CANCELLED
+        // - CONFIRMED -> CANCELLED
+        // - Se já estiver CANCELLED, não pode mudar mais
         if (currentStatus == OrderStatus.PENDING) {
-            if (newStatus != OrderStatus.PAID && newStatus != OrderStatus.CANCELED) {
+            if (newStatus != OrderStatus.CONFIRMED && newStatus != OrderStatus.CANCELLED) {
+                throw new IllegalStateException("Transição de status inválida: " + currentStatus + " -> " + newStatus);
+            }
+        } else if (currentStatus == OrderStatus.CONFIRMED) {
+            if (newStatus != OrderStatus.CANCELLED && newStatus != OrderStatus.CONFIRMED) {
                 throw new IllegalStateException("Transição de status inválida: " + currentStatus + " -> " + newStatus);
             }
         } else {
-            // PAID ou CANCELED não podem ir para outro status
+            // CANCELLED não pode ir para outro status diferente
             if (newStatus != currentStatus) {
                 throw new IllegalStateException("Pedido já está " + currentStatus + " e não pode ser alterado.");
             }

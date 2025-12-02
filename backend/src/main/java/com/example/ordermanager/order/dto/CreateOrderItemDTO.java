@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
  * Regras:
  * - productId não pode ser nulo
  * - quantity >= 1
- * - quantity <= 50 (limite por item)
+ *   (limites máximos são tratados nas regras de negócio, ex: estoque disponível)
  */
 public class CreateOrderItemDTO {
 
@@ -18,7 +18,7 @@ public class CreateOrderItemDTO {
 
     @NotNull
     @Min(1)
-    @Max(50)
+   
     private Integer quantity;
 
     public CreateOrderItemDTO() {
