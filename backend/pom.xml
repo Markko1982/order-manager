@@ -27,6 +27,14 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
+        <!-- Utilitários de teste para Spring Security (@WithMockUser, etc) -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+
     <!-- JPA -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

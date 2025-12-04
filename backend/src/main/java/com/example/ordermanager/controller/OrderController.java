@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.PageImpl;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.net.URI;
 
@@ -27,7 +29,7 @@ public class OrderController {
     // ================================
     // CRIAR PEDIDO
     // ================================
-
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @PostMapping
     public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrderDTO dto) {
         OrderResponseDTO response = orderService.create(dto);
@@ -38,6 +40,7 @@ public class OrderController {
     // ================================
     // BUSCAR POR ID
     // ================================
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/{id}")
     public OrderResponseDTO findById(@PathVariable Long id) {
         return orderService.findById(id);
@@ -47,7 +50,7 @@ public class OrderController {
     // LISTAR COM PAGINAÇÃO (COM FILTRO OPCIONAL DE STATUS)
     // ==============================
     // Lista pedidos com filtro opcional por status (PENDING, PAID, CANCELED)
-
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping
     public Page<OrderResponseDTO> findAll(
             @RequestParam(required = false) OrderStatus status,
@@ -74,6 +77,7 @@ public class OrderController {
     // ================================
     // ATUALIZAR STATUS
     // ================================
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
     public void updateStatus(@PathVariable Long id, @RequestParam OrderStatus status) {
         orderService.updateStatus(id, status);
@@ -82,6 +86,7 @@ public class OrderController {
     // ================================
     // DELETAR / CANCELAR PEDIDO
     // ================================
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         orderService.delete(id);
