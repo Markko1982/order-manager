@@ -1,2 +1,3 @@
-versao da main - alterada diretamente na main (cenario ruim)
-
+versao final - unificando main e feature
+- versao da main - alterada diretamente na main (cenario ruim)
+- versao da feature - alterada na branch feature/conflito-lab
