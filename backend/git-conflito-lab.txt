@@ -1,1 +1,2 @@
-versao base - laboratorio de conflito
+versao da main - alterada diretamente na main (cenario ruim)
+
