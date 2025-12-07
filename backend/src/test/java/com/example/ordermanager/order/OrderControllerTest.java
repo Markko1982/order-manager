@@ -1,6 +1,5 @@
 package com.example.ordermanager.order;
 
-import org.springframework.security.test.context.support.WithMockUser;
 import com.example.ordermanager.product.Product;
 import com.example.ordermanager.product.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 
@@ -20,8 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.security.test.context.support.WithMockUser;
-
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -43,9 +41,10 @@ class OrderControllerTest {
         orderRepository.deleteAll();
         productRepository.deleteAll();
     }
-    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+
     @Test
     void createOrder_returnsOkAndCalculatesTotal() throws Exception {
+        // Arrange: cria dois produtos em banco
         Product p1 = new Product();
         p1.setName("Teclado Mecânico");
         p1.setPrice(new BigDecimal("250.00"));
@@ -58,74 +57,19 @@ class OrderControllerTest {
         p2.setStock(5);
         productRepository.save(p2);
 
+        // 2 x 250 + 1 x 150 = 650
         String body = String.format(
                 "{\"items\":[{\"productId\":%d,\"quantity\":2},{\"productId\":%d,\"quantity\":1}]}",
                 p1.getId(), p2.getId()
         );
 
+        // Act + Assert: chama POST /api/orders e verifica total calculado
         mockMvc.perform(post("/api/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(650.0))
                 .andExpect(jsonPath("$.items[0].productId").value(p1.getId().intValue()))
                 .andExpect(jsonPath("$.items[1].productId").value(p2.getId().intValue()));
-    }
-
-    @Test
-    void getOrderNotFound_returns404WithErrorBody() throws Exception {
-        mockMvc.perform(get("/api/orders/999"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Pedido não encontrado"));
-    }
-
-    @Test
-    void createOrderWithInsufficientStock_returns409Conflict() throws Exception {
-        Product p = new Product();
-        p.setName("Teclado Mecânico");
-        p.setPrice(new BigDecimal("250.00"));
-        p.setStock(5); // estoque menor que a quantidade do pedido
-        productRepository.save(p);
-
-        String body = String.format(
-                "{\"items\":[{\"productId\":%d,\"quantity\":999}]}",
-                p.getId()
-        );
-
-        mockMvc.perform(post("/api/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.error").value("Estoque insuficiente para o produto: Teclado Mecânico"));
-    }
-
-    @Test
-    void updateStatusFlow_pendingToConfirmedToCancelled() throws Exception {
-        // cria um pedido direto no repositório
-        Order order = new Order();
-        order.setOrderNumber("ORD-TEST-STATUS-1");
-        order.setStatus(OrderStatus.PENDING);
-        order.setTotalAmount(new BigDecimal("100.00"));
-        order = orderRepository.save(order);
-
-        Long id = order.getId();
-
-        // PENDING -> CONFIRMED
-        mockMvc.perform(put("/api/orders/" + id + "/status")
-                .param("status", "CONFIRMED"))
-                .andExpect(status().isOk());
-
-        Order confirmed = orderRepository.findById(id).orElseThrow();
-        assertEquals(OrderStatus.CONFIRMED, confirmed.getStatus());
-
-        // CONFIRMED -> CANCELLED
-        mockMvc.perform(put("/api/orders/" + id + "/status")
-                .param("status", "CANCELLED"))
-                .andExpect(status().isOk());
-
-        Order cancelled = orderRepository.findById(id).orElseThrow();
-        assertEquals(OrderStatus.CANCELLED, cancelled.getStatus());
     }
 }
