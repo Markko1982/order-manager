@@ -184,5 +184,27 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 ));
     }
 
+        @Test
+    @WithMockUser(roles = "USER") // sobrescreve o @WithMockUser da classe, sem papel ADMIN
+    void updateStatus_withNonAdminUser_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido em estado PENDING
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("50.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: tenta atualizar o status sem ser ADMIN → deve retornar 403
+        mockMvc.perform(
+                        put("/api/orders/{id}/status", saved.getId())
+                                .param("status", "CONFIRMED")
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value(
+                        org.hamcrest.Matchers.containsString("Access denied")
+                ));
+    }
+
+
 
 }
