@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.test.context.support.WithMockUser;
+import com.example.ordermanager.order.OrderStatus;
+
 
 import java.math.BigDecimal;
 
@@ -145,6 +147,42 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
         assertEquals(OrderStatus.CANCELLED, updated.getStatus());
     }
 
+    @Test
+    void updateStatus_fromCancelledToConfirmed_returnsConflict() throws Exception {
+        // Arrange: cria um pedido já CANCELLED
+        Order order = new Order();
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setTotalAmount(new BigDecimal("150.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: tenta mudar para CONFIRMED → deve falhar
+        mockMvc.perform(
+                        put("/api/orders/{id}/status", saved.getId())
+                                .param("status", "CONFIRMED")
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value(
+                        org.hamcrest.Matchers.containsString("Pedido já está")
+                ));
+    }
+    @Test
+    void updateStatus_nonExistingOrder_returnsNotFound() throws Exception {
+        // Arrange: garante um ID que não existe
+        Long nonExistingId = 9999L;
+        orderRepository.deleteAll(); // só pra ter certeza
+
+        // Act + Assert: PUT /api/orders/{id}/status deve retornar 404
+        mockMvc.perform(
+                        put("/api/orders/{id}/status", nonExistingId)
+                                .param("status", "CONFIRMED")
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value(
+                        org.hamcrest.Matchers.containsString("Pedido não encontrado")
+                ));
+    }
 
 
 }
