@@ -101,4 +101,50 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
             ));
 }
 
+    @Test
+    void updateStatus_fromPendingToConfirmed_returnsOk() throws Exception {
+        // Arrange: cria um pedido em estado PENDING
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("100.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: faz PUT /api/orders/{id}/status?status=CONFIRMED
+        mockMvc.perform(
+                        put("/api/orders/{id}/status", saved.getId())
+                                .param("status", "CONFIRMED")
+                )
+                .andExpect(status().isOk());
+
+        // Verifica no banco se o status foi atualizado
+        Order updated = orderRepository.findById(saved.getId())
+                .orElseThrow();
+
+        assertEquals(OrderStatus.CONFIRMED, updated.getStatus());
+    }
+
+        @Test
+    void updateStatus_fromConfirmedToCancelled_returnsOk() throws Exception {
+        // Arrange: cria um pedido em estado CONFIRMED
+        Order order = new Order();
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setTotalAmount(new BigDecimal("200.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: faz PUT /api/orders/{id}/status?status=CANCELLED
+        mockMvc.perform(
+                        put("/api/orders/{id}/status", saved.getId())
+                                .param("status", "CANCELLED")
+                )
+                .andExpect(status().isOk());
+
+        // Verifica no banco se o status foi atualizado
+        Order updated = orderRepository.findById(saved.getId())
+                .orElseThrow();
+
+        assertEquals(OrderStatus.CANCELLED, updated.getStatus());
+    }
+
+
+
 }
