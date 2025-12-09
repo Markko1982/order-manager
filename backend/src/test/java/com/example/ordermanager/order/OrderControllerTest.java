@@ -2,6 +2,8 @@ package com.example.ordermanager.order;
 
 import com.example.ordermanager.product.Product;
 import com.example.ordermanager.product.ProductRepository;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,6 +208,41 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
         // Verifica que foi removido do banco
         assertFalse(orderRepository.existsById(saved.getId()));
     }
+
+        @Test
+    @WithMockUser(roles = "ADMIN") // tem permissão, mas o ID não existe
+    void deleteOrder_nonExistingOrder_returnsNotFound() throws Exception {
+        // Arrange: garante um ID que não existe
+        Long nonExistingId = 9999L;
+        orderRepository.deleteAll(); // só pra garantir base limpa
+
+        // Act + Assert: deve retornar 404 e corpo padrão de erro
+        mockMvc.perform(delete("/api/orders/{id}", nonExistingId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value(
+                        org.hamcrest.Matchers.containsString("Pedido não encontrado")
+                ));
+    }
+
+        @Test
+    @WithMockUser(roles = "USER") // não é ADMIN
+    void deleteOrder_withNonAdminUser_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido qualquer
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("50.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: tentativa de DELETE deve retornar 403
+        mockMvc.perform(delete("/api/orders/{id}", saved.getId()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value(
+                        Matchers.containsString("Access denied")
+                ));
+    }
+
 
 
 }
