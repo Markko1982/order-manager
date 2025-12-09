@@ -72,4 +72,33 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.items[0].productId").value(p1.getId().intValue()))
                 .andExpect(jsonPath("$.items[1].productId").value(p2.getId().intValue()));
     }
+
+    @Test
+void createOrder_withInsufficientStock_returnsConflict() throws Exception {
+    // Arrange: cria um produto com pouco estoque
+    Product p = new Product();
+    p.setName("Monitor 24\"");
+    p.setPrice(new BigDecimal("800.00"));
+    p.setStock(1); // só 1 unidade em estoque
+    productRepository.save(p);
+
+    // Tenta comprar mais do que o estoque disponível (5 > 1)
+    String body = String.format(
+            "{\"items\":[{\"productId\":%d,\"quantity\":5}]}",
+            p.getId()
+    );
+
+    // Act + Assert: POST /api/orders deve retornar 409 (CONFLICT)
+    mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.status").value(409))
+            .andExpect(jsonPath("$.error").value(
+                    org.hamcrest.Matchers.containsString(
+                            "Estoque insuficiente para o produto: " + p.getName()
+                    )
+            ));
+}
+
 }
