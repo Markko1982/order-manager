@@ -17,6 +17,9 @@ import com.example.ordermanager.order.OrderStatus;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -182,6 +185,26 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 .andExpect(jsonPath("$.error").value(
                         org.hamcrest.Matchers.containsString("Pedido não encontrado")
                 ));
+    }
+
+        @Test
+    @WithMockUser(roles = "ADMIN") // garante permissão pra deletar
+    void deleteOrder_existingOrder_returnsNoContent() throws Exception {
+        // Arrange: cria um pedido simples no banco
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("99.90"));
+        Order saved = orderRepository.save(order);
+
+        // Sanidade: garante que ele existe antes do delete
+        assertTrue(orderRepository.existsById(saved.getId()));
+
+        // Act + Assert: DELETE /api/orders/{id} deve retornar 204 (NO CONTENT)
+        mockMvc.perform(delete("/api/orders/{id}", saved.getId()))
+                .andExpect(status().isNoContent());
+
+        // Verifica que foi removido do banco
+        assertFalse(orderRepository.existsById(saved.getId()));
     }
 
 
