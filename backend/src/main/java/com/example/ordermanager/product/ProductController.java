@@ -7,12 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 
 import java.util.List;
 
+@Tag(name = "Produtos", description = "Operações para gerenciamento de produtos.")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
+
 
     private final ProductService service;
 
@@ -20,8 +25,10 @@ public class ProductController {
         this.service = service;
     }
 
-    // LISTAR PRODUTOS - USER ou ADMIN
+        // LISTAR PRODUTOS - USER ou ADMIN
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Listar produtos",
+               description = "Lista produtos paginados, com filtro opcional por nome.")
     @GetMapping
     public Page<Product> list(@RequestParam(required = false) String name,
                               Pageable pageable) {
@@ -30,6 +37,7 @@ public class ProductController {
 
     // BUSCAR POR ID - USER ou ADMIN
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @Operation(summary = "Buscar produto por ID")
     @GetMapping("/{id}")
     public Product get(@PathVariable Long id) {
         return service.get(id);
@@ -37,6 +45,8 @@ public class ProductController {
 
     // CRIAR PRODUTO - só ADMIN
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Criar produto",
+               description = "Cria um novo produto com nome, preço e estoque.")
     @PostMapping
     public ResponseEntity<Product> create(@RequestBody @Valid ProductDTO dto) {
         return ResponseEntity.ok(service.create(dto));
@@ -44,6 +54,8 @@ public class ProductController {
 
     // ATUALIZAR PRODUTO - só ADMIN
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualizar produto",
+               description = "Atualiza os dados de um produto existente.")
     @PutMapping("/{id}")
     public Product update(@PathVariable Long id,
                           @RequestBody @Valid ProductDTO dto) {
@@ -52,9 +64,12 @@ public class ProductController {
 
     // DELETAR PRODUTO - só ADMIN
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Excluir produto",
+               description = "Remove um produto pelo ID.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
 }
