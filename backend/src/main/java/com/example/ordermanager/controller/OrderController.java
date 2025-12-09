@@ -14,8 +14,14 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 import java.net.URI;
+
+
 
 @Tag(name = "Pedidos", description = "Operações de criação, listagem, atualização e cancelamento de pedidos.")
 @RestController
@@ -82,16 +88,32 @@ public class OrderController {
     }
 
 
-    // ================================
-    // ATUALIZAR STATUS
-    // ================================
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Atualizar status do pedido",
-               description = "Atualiza o status do pedido para PENDING, PAID ou CANCELED.")
-    @PutMapping("/{id}/status")
-    public void updateStatus(@PathVariable Long id, @RequestParam OrderStatus status) {
-        orderService.updateStatus(id, status);
-    }
+        // ================================
+        // ATUALIZAR STATUS
+        // ================================
+        @PreAuthorize("hasRole('ADMIN')")
+        @Operation(
+                summary = "Atualizar status de um pedido",
+                description = "Atualiza o status de um pedido existente. Status válidos: PENDING, CONFIRMED, CANCELLED."
+        )
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Status atualizado com sucesso"),
+                @ApiResponse(responseCode = "404", description = "Pedido não encontrado"),
+                @ApiResponse(responseCode = "409", description = "Transição de status inválida ou outra regra de negócio violada"),
+                @ApiResponse(responseCode = "403", description = "Usuário sem permissão para alterar pedidos")
+        })
+        @PutMapping("/{id}/status")
+        public void updateStatus(
+                @PathVariable Long id,
+                @RequestParam
+                @Parameter(
+                        description = "Novo status do pedido. Valores permitidos: PENDING, CONFIRMED, CANCELLED.",
+                        required = true
+                )
+                OrderStatus status
+        ) {
+            orderService.updateStatus(id, status);
+        }
 
     // ================================
     // DELETAR / CANCELAR PEDIDO
