@@ -13,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.test.context.support.WithMockUser;
-import com.example.ordermanager.order.OrderStatus;
-
 
 import java.math.BigDecimal;
 
@@ -81,32 +79,32 @@ class OrderControllerTest {
     }
 
     @Test
-void createOrder_withInsufficientStock_returnsConflict() throws Exception {
-    // Arrange: cria um produto com pouco estoque
-    Product p = new Product();
-    p.setName("Monitor 24\"");
-    p.setPrice(new BigDecimal("800.00"));
-    p.setStock(1); // só 1 unidade em estoque
-    productRepository.save(p);
+    void createOrder_withInsufficientStock_returnsConflict() throws Exception {
+        // Arrange: cria um produto com pouco estoque
+        Product p = new Product();
+        p.setName("Monitor 24\"");
+        p.setPrice(new BigDecimal("800.00"));
+        p.setStock(1); // só 1 unidade em estoque
+        productRepository.save(p);
 
-    // Tenta comprar mais do que o estoque disponível (5 > 1)
-    String body = String.format(
-            "{\"items\":[{\"productId\":%d,\"quantity\":5}]}",
-            p.getId()
-    );
+        // Tenta comprar mais do que o estoque disponível (5 > 1)
+        String body = String.format(
+                "{\"items\":[{\"productId\":%d,\"quantity\":5}]}",
+                p.getId()
+        );
 
-    // Act + Assert: POST /api/orders deve retornar 409 (CONFLICT)
-    mockMvc.perform(post("/api/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.error").value(
-                    org.hamcrest.Matchers.containsString(
-                            "Estoque insuficiente para o produto: " + p.getName()
-                    )
-            ));
-}
+        // Act + Assert: POST /api/orders deve retornar 409 (CONFLICT)
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value(
+                        Matchers.containsString(
+                                "Estoque insuficiente para o produto: " + p.getName()
+                        )
+                ));
+    }
 
     @Test
     void updateStatus_fromPendingToConfirmed_returnsOk() throws Exception {
@@ -130,7 +128,7 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
         assertEquals(OrderStatus.CONFIRMED, updated.getStatus());
     }
 
-        @Test
+    @Test
     void updateStatus_fromConfirmedToCancelled_returnsOk() throws Exception {
         // Arrange: cria um pedido em estado CONFIRMED
         Order order = new Order();
@@ -168,9 +166,10 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value(
-                        org.hamcrest.Matchers.containsString("Pedido já está")
+                        Matchers.containsString("Pedido já está")
                 ));
     }
+
     @Test
     void updateStatus_nonExistingOrder_returnsNotFound() throws Exception {
         // Arrange: garante um ID que não existe
@@ -185,11 +184,11 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value(
-                        org.hamcrest.Matchers.containsString("Pedido não encontrado")
+                        Matchers.containsString("Pedido não encontrado")
                 ));
     }
 
-        @Test
+    @Test
     @WithMockUser(roles = "ADMIN") // garante permissão pra deletar
     void deleteOrder_existingOrder_returnsNoContent() throws Exception {
         // Arrange: cria um pedido simples no banco
@@ -209,7 +208,7 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
         assertFalse(orderRepository.existsById(saved.getId()));
     }
 
-        @Test
+    @Test
     @WithMockUser(roles = "ADMIN") // tem permissão, mas o ID não existe
     void deleteOrder_nonExistingOrder_returnsNotFound() throws Exception {
         // Arrange: garante um ID que não existe
@@ -221,11 +220,11 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value(
-                        org.hamcrest.Matchers.containsString("Pedido não encontrado")
+                        Matchers.containsString("Pedido não encontrado")
                 ));
     }
 
-        @Test
+    @Test
     @WithMockUser(roles = "USER") // não é ADMIN
     void deleteOrder_withNonAdminUser_returnsForbidden() throws Exception {
         // Arrange: cria um pedido qualquer
@@ -243,6 +242,59 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 ));
     }
 
+    @Test
+    void listOrders_withoutStatusFilter_returnsAllOrders() throws Exception {
+        // Arrange: cria 3 pedidos com status diferentes
+        Order o1 = new Order();
+        o1.setStatus(OrderStatus.PENDING);
+        o1.setTotalAmount(new BigDecimal("100.00"));
+        orderRepository.save(o1);
+
+        Order o2 = new Order();
+        o2.setStatus(OrderStatus.CONFIRMED);
+        o2.setTotalAmount(new BigDecimal("200.00"));
+        orderRepository.save(o2);
+
+        Order o3 = new Order();
+        o3.setStatus(OrderStatus.CANCELLED);
+        o3.setTotalAmount(new BigDecimal("300.00"));
+        orderRepository.save(o3);
+
+        // Act + Assert: GET /api/orders sem filtro deve retornar os 3
+        mockMvc.perform(get("/api/orders")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3));
+    }
+
+    @Test
+    void listOrders_withStatusFilter_returnsOnlyMatchingStatus() throws Exception {
+        // Arrange: cria 3 pedidos com status diferentes
+        Order o1 = new Order();
+        o1.setStatus(OrderStatus.PENDING);
+        o1.setTotalAmount(new BigDecimal("100.00"));
+        orderRepository.save(o1);
+
+        Order o2 = new Order();
+        o2.setStatus(OrderStatus.CONFIRMED);
+        o2.setTotalAmount(new BigDecimal("200.00"));
+        orderRepository.save(o2);
+
+        Order o3 = new Order();
+        o3.setStatus(OrderStatus.CANCELLED);
+        o3.setTotalAmount(new BigDecimal("300.00"));
+        orderRepository.save(o3);
+
+        // Act + Assert: GET /api/orders?status=CONFIRMED deve retornar só o CONFIRMED
+        mockMvc.perform(get("/api/orders")
+                        .param("status", "CONFIRMED")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].status").value("CONFIRMED"));
+    }
 
     @Test
     void getOrderById_existingOrder_returnsOkWithBasicFields() throws Exception {
@@ -275,5 +327,4 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                         Matchers.containsString("Pedido não encontrado")
                 ));
     }
-
 }
