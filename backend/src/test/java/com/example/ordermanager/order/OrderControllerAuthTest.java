@@ -103,4 +103,35 @@ class OrderControllerAuthTest {
                 .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.total").isNumber());
     }
+
+
+        @Test
+    void getOrders_withoutAuthentication_returnsForbidden() throws Exception {
+        // Act + Assert: sem usuário autenticado → deve bloquear o acesso
+        mockMvc.perform(get("/api/orders"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    void getOrders_withUserRoleUser_returnsOk() throws Exception {
+        // Arrange: garante que existe pelo menos um pedido na base
+        createSimpleOrder();
+
+        // Act + Assert: usuário autenticado com role USER → pode listar pedidos
+        mockMvc.perform(get("/api/orders"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    void getOrders_withUserRoleAdmin_returnsOk() throws Exception {
+        // Arrange: garante que existe pelo menos um pedido na base
+        createSimpleOrder();
+
+        // Act + Assert: usuário autenticado com role ADMIN → também pode listar
+        mockMvc.perform(get("/api/orders"))
+                .andExpect(status().isOk());
+    }
+
 }
