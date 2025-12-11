@@ -244,5 +244,36 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
     }
 
 
+    @Test
+    void getOrderById_existingOrder_returnsOkWithBasicFields() throws Exception {
+        // Arrange: cria um pedido simples no banco
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("150.00"));
+        Order saved = orderRepository.save(order);
+
+        // Act + Assert: GET /api/orders/{id} deve retornar 200
+        // e conter id, status e total no JSON
+        mockMvc.perform(get("/api/orders/{id}", saved.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(saved.getId().intValue()))
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.total").isNumber());
+    }
+
+    @Test
+    void getOrderById_nonExistingOrder_returnsNotFoundWithErrorBody() throws Exception {
+        // Arrange: garante um ID que não existe
+        Long nonExistingId = 999999L;
+        orderRepository.deleteAll(); // só pra garantir base limpa
+
+        // Act + Assert: deve retornar 404 com body no padrão global (status + error)
+        mockMvc.perform(get("/api/orders/{id}", nonExistingId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value(
+                        Matchers.containsString("Pedido não encontrado")
+                ));
+    }
 
 }
