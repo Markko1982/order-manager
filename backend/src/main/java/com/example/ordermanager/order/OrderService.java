@@ -83,13 +83,20 @@ public class OrderService {
         return toResponseDTO(order);
     }
 
-    // ============================
-    // LISTAR COM PAGINAÇÃO
-    // ============================
-    public Page<OrderResponseDTO> findAll(Pageable pageable) {
-        return orderRepository.findAll(pageable)
-                .map(this::toResponseDTO);
-    }
+        // ============================
+        // LISTAR COM PAGINAÇÃO E FILTRO OPCIONAL POR STATUS
+        // ============================
+        public Page<OrderResponseDTO> findAll(OrderStatus status, Pageable pageable) {
+            Page<Order> page;
+
+            if (status == null) {
+                page = orderRepository.findAll(pageable);
+            } else {
+                page = orderRepository.findByStatus(status, pageable);
+            }
+
+            return page.map(this::toResponseDTO);
+        }
 
     // ============================
     // ATUALIZAR STATUS
