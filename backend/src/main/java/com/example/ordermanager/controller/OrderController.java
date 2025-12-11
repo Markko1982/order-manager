@@ -8,14 +8,16 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.PageImpl;
-import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.net.URI;
+
 
 @Tag(name = "Pedidos", description = "Operações de criação, listagem, atualização e cancelamento de pedidos.")
 @RestController
@@ -52,35 +54,20 @@ public class OrderController {
             return orderService.findById(id);
         }
 
-    // ==============================
-    // LISTAR COM PAGINAÇÃO (COM FILTRO OPCIONAL DE STATUS)
-    // ==============================
-    // Lista pedidos com filtro opcional por status (PENDING, PAID, CANCELED)
+    // ============================
+    // LISTAR PEDIDOS
+    // ============================
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @Operation(summary = "Listar pedidos",
-               description = "Lista pedidos paginados, com filtro opcional por status (PENDING, PAID, CANCELED).")
+    @Operation(
+            summary = "Listar pedidos",
+            description = "Lista pedidos paginados, com filtro opcional por status (PENDING, CONFIRMED, CANCELLED)."
+    )
     @GetMapping
     public Page<OrderResponseDTO> findAll(
             @RequestParam(required = false) OrderStatus status,
             Pageable pageable) {
-
-        // Busca paginada normal
-        Page<OrderResponseDTO> page = orderService.findAll(pageable);
-
-        // Se não foi passado status, devolve tudo igual antes
-        if (status == null) {
-            return page;
-        }
-
-        // Filtra apenas os pedidos com o status desejado
-        List<OrderResponseDTO> filtered = page.getContent().stream()
-                .filter(order -> order.getStatus() == status)
-                .toList();
-
-        // Monta uma nova Page com os resultados filtrados
-        return new PageImpl<>(filtered, pageable, filtered.size());
+        return orderService.findAll(status, pageable);
     }
-
 
     // ================================
     // ATUALIZAR STATUS

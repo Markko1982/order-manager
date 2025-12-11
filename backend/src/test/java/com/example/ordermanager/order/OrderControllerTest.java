@@ -243,6 +243,60 @@ void createOrder_withInsufficientStock_returnsConflict() throws Exception {
                 ));
     }
 
+    @Test
+    void listOrders_withoutStatusFilter_returnsAllOrders() throws Exception {
+        // Arrange: cria 3 pedidos com status diferentes
+        Order o1 = new Order();
+        o1.setStatus(OrderStatus.PENDING);
+        o1.setTotalAmount(new BigDecimal("100.00"));
+        orderRepository.save(o1);
 
+        Order o2 = new Order();
+        o2.setStatus(OrderStatus.CONFIRMED);
+        o2.setTotalAmount(new BigDecimal("200.00"));
+        orderRepository.save(o2);
+
+        Order o3 = new Order();
+        o3.setStatus(OrderStatus.CANCELLED);
+        o3.setTotalAmount(new BigDecimal("300.00"));
+        orderRepository.save(o3);
+
+        // Act + Assert: GET /api/orders sem filtro deve retornar os 3
+        mockMvc.perform(get("/api/orders")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3));
+    }
+
+    @Test
+    void listOrders_withStatusFilter_returnsOnlyMatchingStatus() throws Exception {
+        // Arrange: cria 3 pedidos com status diferentes
+        Order o1 = new Order();
+        o1.setStatus(OrderStatus.PENDING);
+        o1.setTotalAmount(new BigDecimal("100.00"));
+        orderRepository.save(o1);
+
+        Order o2 = new Order();
+        o2.setStatus(OrderStatus.CONFIRMED);
+        o2.setTotalAmount(new BigDecimal("200.00"));
+        orderRepository.save(o2);
+
+        Order o3 = new Order();
+        o3.setStatus(OrderStatus.CANCELLED);
+        o3.setTotalAmount(new BigDecimal("300.00"));
+        orderRepository.save(o3);
+
+        // Act + Assert: GET /api/orders?status=CONFIRMED deve retornar só o CONFIRMED
+        mockMvc.perform(get("/api/orders")
+                        .param("status", "CONFIRMED")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].status").value("CONFIRMED"));
+    }
+
+    
 
 }
