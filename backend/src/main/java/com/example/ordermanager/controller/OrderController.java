@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,13 +37,23 @@ public class OrderController {
     // CRIAR PEDIDO
     // ================================
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-        @Operation(summary = "Criar pedido",
-                description = "Cria um novo pedido com itens e retorna o resumo com total.")
-        @PostMapping
-        public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrderDTO dto) {
-            OrderResponseDTO response = orderService.create(dto);
-            return ResponseEntity.ok(response);
-        }
+    @Operation(summary = "Criar pedido",
+            description = "Cria um novo pedido com itens e retorna o resumo com total.")
+    @PostMapping
+    public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrderDTO dto) {
+        OrderResponseDTO response = orderService.create(dto);
+
+        // Monta a URI do recurso criado: /api/orders/{id}
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.getId())
+                .toUri();
+
+    // 201 Created + Location + body com o pedido
+    return ResponseEntity.created(location).body(response);
+}
+
 
 
     // ================================

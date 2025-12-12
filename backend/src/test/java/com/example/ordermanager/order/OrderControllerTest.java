@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+
 
 import java.math.BigDecimal;
 
@@ -47,36 +49,37 @@ class OrderControllerTest {
         productRepository.deleteAll();
     }
 
-    @Test
-    void createOrder_returnsOkAndCalculatesTotal() throws Exception {
-        // Arrange: cria dois produtos em banco
-        Product p1 = new Product();
-        p1.setName("Teclado Mecânico");
-        p1.setPrice(new BigDecimal("250.00"));
-        p1.setStock(10);
-        productRepository.save(p1);
+   @Test
+void createOrder_returnsCreatedAndCalculatesTotal() throws Exception {
+    // Arrange: cria dois produtos em banco
+    Product p1 = new Product();
+    p1.setName("Teclado Mecânico");
+    p1.setPrice(new BigDecimal("250.00"));
+    p1.setStock(10);
+    productRepository.save(p1);
 
-        Product p2 = new Product();
-        p2.setName("Mouse Gamer");
-        p2.setPrice(new BigDecimal("150.00"));
-        p2.setStock(5);
-        productRepository.save(p2);
+    Product p2 = new Product();
+    p2.setName("Mouse Gamer");
+    p2.setPrice(new BigDecimal("150.00"));
+    p2.setStock(5);
+    productRepository.save(p2);
 
-        // 2 x 250 + 1 x 150 = 650
-        String body = String.format(
-                "{\"items\":[{\"productId\":%d,\"quantity\":2},{\"productId\":%d,\"quantity\":1}]}",
-                p1.getId(), p2.getId()
-        );
+    // 2 x 250 + 1 x 150 = 650
+    String body = String.format(
+            "{\"items\":[{\"productId\":%d,\"quantity\":2},{\"productId\":%d,\"quantity\":1}]}",
+            p1.getId(), p2.getId()
+    );
 
-        // Act + Assert: chama POST /api/orders e verifica total calculado
-        mockMvc.perform(post("/api/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(650.0))
-                .andExpect(jsonPath("$.items[0].productId").value(p1.getId().intValue()))
-                .andExpect(jsonPath("$.items[1].productId").value(p2.getId().intValue()));
-    }
+    // Act + Assert: chama POST /api/orders e verifica status, Location e total
+    mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isCreated())
+            .andExpect(header().string("Location", Matchers.containsString("/api/orders/")))
+            .andExpect(jsonPath("$.total").value(650.0))
+            .andExpect(jsonPath("$.items[0].productId").value(p1.getId().intValue()))
+            .andExpect(jsonPath("$.items[1].productId").value(p2.getId().intValue()));
+}
 
     @Test
     void createOrder_withInsufficientStock_returnsConflict() throws Exception {
