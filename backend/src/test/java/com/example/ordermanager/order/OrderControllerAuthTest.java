@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc // aqui os filtros de segurança estão ATIVOS (addFilters = true por padrão)
@@ -133,5 +136,76 @@ class OrderControllerAuthTest {
         mockMvc.perform(get("/api/orders"))
                 .andExpect(status().isOk());
     }
+
+        @Test
+    void updateOrderStatus_withoutAuthentication_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: sem usuário autenticado → deve bloquear (403)
+        mockMvc.perform(put("/api/orders/{id}/status", order.getId())
+                        .param("status", "CONFIRMED"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    void updateOrderStatus_withUserRoleUser_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: usuário autenticado mas com role USER → não pode alterar status
+        mockMvc.perform(put("/api/orders/{id}/status", order.getId())
+                        .param("status", "CONFIRMED"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    void updateOrderStatus_withUserRoleAdmin_returnsOk() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: ADMIN pode alterar status → 200 OK
+        mockMvc.perform(put("/api/orders/{id}/status", order.getId())
+                        .param("status", "CONFIRMED"))
+                .andExpect(status().isOk());
+        // melhoria futura: validar no banco se o status realmente mudou
+    }
+
+
+        @Test
+    void deleteOrder_withoutAuthentication_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: sem usuário autenticado → 403 Forbidden
+        mockMvc.perform(delete("/api/orders/{id}", order.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    void deleteOrder_withUserRoleUser_returnsForbidden() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: USER não pode deletar → 403 Forbidden
+        mockMvc.perform(delete("/api/orders/{id}", order.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    void deleteOrder_withUserRoleAdmin_returnsNoContent() throws Exception {
+        // Arrange: cria um pedido
+        Order order = createSimpleOrder();
+
+        // Act + Assert: ADMIN pode deletar → 204 No Content
+        mockMvc.perform(delete("/api/orders/{id}", order.getId()))
+                .andExpect(status().isNoContent());
+        // melhoria futura: checar no repositório se o pedido realmente foi removido
+    }
+
 
 }
