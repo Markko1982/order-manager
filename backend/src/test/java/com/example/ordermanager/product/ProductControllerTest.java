@@ -83,4 +83,50 @@ void createProduct_asUser_returnsForbidden() throws Exception {
             .andExpect(status().isForbidden());
 }
 
+@Test
+void createProduct_withBlankName_returnsBadRequest() throws Exception {
+    ProductDTO dto = new ProductDTO();
+    dto.setName("   "); // inválido por @NotBlank
+    dto.setPrice(new BigDecimal("100.00"));
+    dto.setStock(10);
+
+    mockMvc.perform(post("/api/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
+@Test
+void createProduct_withNegativePrice_returnsBadRequest() throws Exception {
+    ProductDTO dto = new ProductDTO();
+    dto.setName("Mouse Gamer");
+    dto.setPrice(new BigDecimal("-1.00")); // inválido por @DecimalMin("0.0")
+    dto.setStock(10);
+
+    mockMvc.perform(post("/api/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
+@Test
+void createProduct_withNegativeStock_returnsBadRequest() throws Exception {
+    ProductDTO dto = new ProductDTO();
+    dto.setName("Teclado Mecânico");
+    dto.setPrice(new BigDecimal("250.00"));
+    dto.setStock(-1); // inválido por @Min(0)
+
+    mockMvc.perform(post("/api/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
+
 }
