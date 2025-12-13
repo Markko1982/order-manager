@@ -2,6 +2,8 @@ package com.example.ordermanager.order;
 
 import com.example.ordermanager.product.Product;
 import com.example.ordermanager.product.ProductRepository;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -330,4 +332,47 @@ void createOrder_returnsCreatedAndCalculatesTotal() throws Exception {
                         Matchers.containsString("Pedido não encontrado")
                 ));
     }
+
+    @Test
+void createOrder_withEmptyItems_returnsBadRequest() throws Exception {
+    // Arrange: corpo com lista de itens vazia
+    String body = "{\"items\":[]}";
+
+    // Act + Assert
+    mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
+@Test
+void createOrder_withNullProductId_returnsBadRequest() throws Exception {
+    // Arrange: item com productId nulo
+    String body = "{\"items\":[{\"productId\":null,\"quantity\":1}]}";
+
+    // Act + Assert
+    mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
+@Test
+void createOrder_withZeroQuantity_returnsBadRequest() throws Exception {
+    // Arrange: item com quantity inválida (0)
+    String body = "{\"items\":[{\"productId\":1,\"quantity\":0}]}";
+
+    // Act + Assert
+    mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").isNotEmpty());
+}
+
 }
