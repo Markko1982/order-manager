@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import java.net.URI;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+
 
 import java.util.List;
 
@@ -43,14 +47,25 @@ public class ProductController {
         return service.get(id);
     }
 
-    // CRIAR PRODUTO - só ADMIN
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Criar produto",
-               description = "Cria um novo produto com nome, preço e estoque.")
-    @PostMapping
-    public ResponseEntity<Product> create(@RequestBody @Valid ProductDTO dto) {
-        return ResponseEntity.ok(service.create(dto));
-    }
+ // CRIAR PRODUTO - só ADMIN
+@PreAuthorize("hasRole('ADMIN')")
+@Operation(summary = "Criar produto",
+           description = "Cria um novo produto com nome, preço e estoque.")
+@PostMapping
+public ResponseEntity<Product> create(@RequestBody @Valid ProductDTO dto) {
+    Product created = service.create(dto);
+
+    // Monta URI do recurso criado: /api/products/{id}
+    URI location = ServletUriComponentsBuilder
+            .fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(created.getId())
+            .toUri();
+
+    // 201 Created + Location + body com o produto criado
+    return ResponseEntity.created(location).body(created);
+}
+
 
     // ATUALIZAR PRODUTO - só ADMIN
     @PreAuthorize("hasRole('ADMIN')")

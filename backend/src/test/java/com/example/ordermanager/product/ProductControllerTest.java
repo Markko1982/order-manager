@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.hamcrest.Matchers.containsString;
+
 
 import java.math.BigDecimal;
 
@@ -127,6 +130,24 @@ void createProduct_withNegativeStock_returnsBadRequest() throws Exception {
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").isNotEmpty());
 }
+
+@Test
+void createProduct_asAdmin_returnsCreatedAndLocation() throws Exception {
+    ProductDTO dto = new ProductDTO();
+    dto.setName("Headset Gamer");
+    dto.setPrice(new BigDecimal("300.00"));
+    dto.setStock(15);
+
+    mockMvc.perform(post("/api/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isCreated())
+            .andExpect(header().string("Location", containsString("/api/products/")))
+            .andExpect(jsonPath("$.name").value("Headset Gamer"))
+            .andExpect(jsonPath("$.price").value(300.0))
+            .andExpect(jsonPath("$.stock").value(15));
+}
+
 
 
 }
