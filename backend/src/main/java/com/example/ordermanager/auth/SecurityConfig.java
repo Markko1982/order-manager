@@ -1,6 +1,5 @@
 package com.example.ordermanager.auth;
 
-import com.example.ordermanager.auth.jwt.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,10 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-
-
-
 
 @Configuration
 @EnableWebSecurity
@@ -35,23 +30,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // ENDPOINTS PÚBLICOS (SEM JWT)
-                .requestMatchers(
-                    "/api/auth/**",
-                    "/api/health",     // <-- liberado
-                    "/health",         // opcional: caso tenha actuator/health
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html"
-                ).permitAll()
-                // TODO O RESTO PRECISA DE JWT
-                .anyRequest().authenticated()
-            )
-            .userDetailsService(userDetailsService)
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // ENDPOINTS PÚBLICOS (SEM JWT)
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/health", // <-- liberado
+                                "/health", // opcional: caso tenha actuator/health
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+                        // TODO O RESTO PRECISA DE JWT
+                        .anyRequest().authenticated())
+                .userDetailsService(userDetailsService)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
