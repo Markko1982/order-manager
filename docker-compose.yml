@@ -4,17 +4,17 @@ services:
     container_name: order-manager-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: order_manager
-      MYSQL_USER: order_user
-      MYSQL_PASSWORD: ChangeMe123!
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-order_manager}
+      MYSQL_USER: ${MYSQL_USER:-order_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no arquivo .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no arquivo .env}
     #ports:
       #- "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,10 +29,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:mysql://db:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      DB_USER: order_user
-      DB_PASSWORD: ChangeMe123!
-      JWT_SECRET: local_dev_docker_change_me
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-order_manager}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER:-order_user}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no arquivo .env}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
       # PORT: 8080  # já é o default da app
     ports:
       - "8080:8080"
