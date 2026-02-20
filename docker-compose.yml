@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: order-manager-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: order_manager
+      MYSQL_USER: order_user
+      MYSQL_PASSWORD: ChangeMe123!
+      MYSQL_ROOT_PASSWORD: root
+    #ports:
+      #- "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: order-manager-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://db:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: order_user
+      DB_PASSWORD: ChangeMe123!
+      JWT_SECRET: local_dev_docker_change_me
+      # PORT: 8080  # já é o default da app
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
