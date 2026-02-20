@@ -1,0 +1,19 @@
+# Diretórios de build / IDE
+target
+.idea
+.vscode
+*.iml
+
+# Git / VCS
+.git
+.gitignore
+
+# Arquivos de Docker / Compose (não precisam ir para a imagem)
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Outros arquivos que não são necessários no runtime
+*.log
+*.md
+backend-README.md
