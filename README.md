@@ -128,6 +128,14 @@ Health check rápido:
     GET /health
 
 ---
+## 🐳 Como Rodar com Docker Compose
+
+Se você tiver **Docker** instalado, pode subir a aplicação e o banco MySQL com um único comando.
+
+Na raiz do projeto:
+
+```bash
+docker compose up --build
 
 ## 🔐 Autenticação (JWT)
 
