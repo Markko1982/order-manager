@@ -39,9 +39,10 @@ Pacotes relevantes:
 A aplicação espera um MySQL acessível (por padrão local):
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=order_user
-spring.datasource.password=ChangeMe123!
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+spring.datasource.username=${DB_USER:order_user}
+spring.datasource.password=${DB_PASSWORD:ChangeMe123!}
+
 ```
 
 Você pode:
@@ -68,9 +69,11 @@ Arquivos atuais:
 No arquivo `src/main/resources/application.properties`:
 
 ```properties
+```md
+```properties
 # JWT Configuration
-jwt.secret=minha-chave-secreta-super-segura-para-jwt-com-no-minimo-256-bits-de-seguranca
-jwt.expiration=86400000  # 24h em milissegundos
+jwt.secret=${JWT_SECRET:CHANGE_ME_DEV_ONLY}
+jwt.expiration=${JWT_EXPIRATION:86400000}  # 24h em ms
 ```
 
 > ⚠️ Em produção, essa chave deve vir de variável de ambiente e **nunca** ficar em texto plano no repositório.

@@ -13,7 +13,8 @@ O sistema permite:
 - retornar erros em formato JSON padronizado;
 - garantir o comportamento através de **testes de integração**.
 
-> Projeto focado em estudos, estruturado para ser usado como **portfólio**.
+> Projeto de portfólio com foco em boas práticas de engenharia: documentação, testes automatizados, segurança e organização do código.
+
 
 ---
 
@@ -78,11 +79,11 @@ Exemplo de criação de banco/usuário no MySQL:
     GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
     FLUSH PRIVILEGES;
 
-Configuração básica (`src/main/resources/application.properties`):
+Configuração básica (`backend/src/main/resources/application.properties`):
 
-    spring.datasource.url=jdbc:mysql://localhost:3306/order_manager?useSSL=false&serverTimezone=UTC
-    spring.datasource.username=order_user
-    spring.datasource.password=ChangeMe123!
+    spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    spring.datasource.username=${DB_USER:order_user}
+    spring.datasource.password=${DB_PASSWORD:ChangeMe123!}
 
     spring.jpa.hibernate.ddl-auto=validate
     spring.jpa.show-sql=true
@@ -90,6 +91,21 @@ Configuração básica (`src/main/resources/application.properties`):
     spring.flyway.enabled=true
 
 ---
+Você pode sobrescrever a configuração via variáveis de ambiente:
+
+- `DB_URL` (opcional)
+- `DB_USER` (opcional)
+- `DB_PASSWORD` (opcional)
+- `PORT` (opcional)
+- `JWT_SECRET` (recomendado definir sempre fora do repositório)
+- `JWT_EXPIRATION` (opcional)
+
+Exemplo (Linux):
+
+    export DB_USER=order_user
+    export DB_PASSWORD='ChangeMe123!'
+    export JWT_SECRET='dev-secret-change-me'
+
 
 ## ▶️ Como Rodar
 
@@ -362,14 +378,13 @@ Os testes usam `@SpringBootTest`, `@AutoConfigureMockMvc` e transações para is
 
 ---
 
-## 📌 Observação
+## 📌 Sobre este projeto
 
-Projeto desenvolvido para estudo guiado (mentoria).  
-Pode ser usado como **portfólio** no GitHub / LinkedIn e como base para entrevistas técnicas.
+Este repositório é mantido como portfólio, com objetivo de demonstrar práticas de engenharia (documentação, testes, segurança e manutenibilidade).
 
 ## 📌 Documentação da API
 
-A documentação detalhada dos endpoints (autenticação, produtos, pedidos, erros e exemplos de JSON)
-está em:
+A documentação detalhada da API (autenticação, produtos, pedidos, erros e exemplos de JSON) está em:
 
-- `backend/README.md`
+- `backend/backend-README.md`
+
