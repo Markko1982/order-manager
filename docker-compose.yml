@@ -8,8 +8,8 @@ services:
       MYSQL_USER: ${MYSQL_USER:-order_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no arquivo .env}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no arquivo .env}
-    #ports:
-      #- "3306:3306"
+    # ports:
+    #   - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
@@ -29,11 +29,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-order_manager}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE:-order_manager}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
       DB_USER: ${MYSQL_USER:-order_user}
       DB_PASSWORD: ${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no arquivo .env}
       JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
-      # PORT: 8080  # já é o default da app
     ports:
       - "8080:8080"
 
