@@ -1,398 +1,164 @@
 # Order Manager
 
-API REST em **Java / Spring Boot** para gerenciamento de **produtos** e **pedidos** de uma loja simples, com autenticação via **JWT** e testes de integração.
+API REST em **Java 17 / Spring Boot 3** para gerenciamento de **produtos** e **pedidos**, com autenticação via **JWT** e testes automatizados.
 
-O sistema permite:
+> Projeto de portfólio com foco em boas práticas: documentação, testes, segurança e organização do código.
 
-- cadastrar e gerenciar produtos;
-- criar pedidos com lista de itens (produto + quantidade);
-- validar estoque automaticamente;
-- calcular o valor total do pedido;
-- atualizar o status do pedido;
-- autenticar usuários com **JWT**;
-- retornar erros em formato JSON padronizado;
-- garantir o comportamento através de **testes de integração**.
+## ✅ O que o sistema faz
 
-> Projeto de portfólio com foco em boas práticas de engenharia: documentação, testes automatizados, segurança e organização do código.
-
-
----
+- Cadastrar e gerenciar **produtos**
+- Criar **pedidos** com lista de itens (produto + quantidade)
+- Validar e **baixar estoque** automaticamente
+- Calcular **valor total** do pedido
+- Atualizar **status do pedido**
+- Autenticar usuários com **JWT**
+- Retornar erros em formato **JSON padronizado**
+- Garantir comportamento com **testes de integração**
 
 ## ⚙️ Tecnologias
 
-- Java 17  
-- Spring Boot 3  
-- Spring Web  
-- Spring Data JPA  
-- Spring Security + JWT  
-- Bean Validation (Jakarta Validation)  
-- MySQL + Flyway  
-- Maven  
-- JUnit 5 + Spring Boot Test + MockMvc  
+- Java 17
+- Spring Boot 3 (Web, Validation, Data JPA, Security)
+- JWT (jjwt)
+- MySQL 8 + Flyway
+- Maven
+- Testes: JUnit 5 + Spring Boot Test + MockMvc
+- OpenAPI/Swagger UI (springdoc)
 
----
+## 📦 Estrutura do repositório (alto nível)
 
-## 🧱 Estrutura (resumo)
+- `docker-compose.yml` na raiz (sobe app + banco)
+- `backend/` (API Spring Boot)
 
-    src/main/java/com/example/ordermanager
-    ├── OrderManagerApplication.java
-    ├── auth
-    │   ├── SecurityConfig.java
-    │   ├── JwtFilter.java
-    │   ├── AuthController.java
-    │   ├── User.java / Role.java
-    │   └── UserDetailsServiceImpl.java
-    ├── common
-    │   └── ApiExceptionHandler.java
-    ├── product
-    │   ├── Product.java
-    │   ├── dto/ProductDTO.java
-    │   ├── ProductController.java
-    │   ├── ProductService.java
-    │   └── ProductRepository.java
-    └── order
-        ├── Order.java
-        ├── OrderItem.java
-        ├── OrderStatus.java
-        ├── dto/
-        │   ├── CreateOrderDTO.java
-        │   ├── OrderItemResponseDTO.java
-        │   └── OrderResponseDTO.java
-        ├── OrderController.java
-        ├── OrderService.java
-        ├── OrderRepository.java
-        └── OrderItemRepository.java
+Documentação detalhada da API: **`backend/backend-README.md`**.
 
-Migrations do banco:
+## ▶️ Como rodar com Docker Compose (recomendado)
 
-    src/main/resources/db/migration
-    └── V1__init.sql
+### 1) Preparar variáveis de ambiente
 
----
+Na raiz do projeto:
 
-## 🗄️ Banco de Dados
+~~~bash
+cp .env.example .env
+~~~
 
-Exemplo de criação de banco/usuário no MySQL:
+> Ajuste os valores no `.env` (principalmente `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` e `JWT_SECRET`).
 
-    CREATE DATABASE order_manager;
-    CREATE USER 'order_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
-    GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
-    FLUSH PRIVILEGES;
+### 2) Subir API + MySQL
 
-Configuração básica (`backend/src/main/resources/application.properties`):
+~~~bash
+docker compose up --build
+~~~
 
-    spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    spring.datasource.username=${DB_USER:order_user}
-    spring.datasource.password=${DB_PASSWORD:ChangeMe123!}
+A API ficará em:
 
-    spring.jpa.hibernate.ddl-auto=validate
-    spring.jpa.show-sql=true
+- `http://localhost:8080`
 
-    spring.flyway.enabled=true
+Health check:
 
----
-Você pode sobrescrever a configuração via variáveis de ambiente:
+- `GET /health`
+
+Swagger UI (se habilitado):
+
+- `http://localhost:8080/swagger-ui/index.html`
+
+> Observação: por padrão o MySQL **não expõe porta** para o host. Se você precisar acessar o banco fora do Docker, descomente a seção `ports` do serviço `db` no `docker-compose.yml`.
+
+### Parar e limpar
+
+~~~bash
+docker compose down -v
+~~~
+
+## ▶️ Como rodar localmente (sem Docker)
+
+Pré-requisitos:
+- Java 17
+- Maven
+- MySQL 8 rodando localmente
+
+### Banco (exemplo)
+
+~~~sql
+CREATE DATABASE order_manager;
+CREATE USER 'order_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
+GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
+FLUSH PRIVILEGES;
+~~~
+
+### Subir a API
+
+Dentro de `backend/`:
+
+~~~bash
+mvn clean package
+mvn spring-boot:run
+~~~
+
+Config padrão (pode sobrescrever via variáveis de ambiente):
 
 - `DB_URL` (opcional)
 - `DB_USER` (opcional)
 - `DB_PASSWORD` (opcional)
 - `PORT` (opcional)
-- `JWT_SECRET` (recomendado definir sempre fora do repositório)
+- `JWT_SECRET` (**recomendado** sempre definir fora do repo)
 - `JWT_EXPIRATION` (opcional)
-
-Exemplo (Linux):
-
-    export DB_USER=order_user
-    export DB_PASSWORD='ChangeMe123!'
-    export JWT_SECRET='dev-secret-change-me'
-
-
-## ▶️ Como Rodar
-
-Dentro da pasta `backend`:
-
-1. Compilar:
-
-       mvn clean package
-
-2. Subir a aplicação:
-
-       mvn spring-boot:run
-
-A API ficará em:
-
-    http://localhost:8080
-
-Health check rápido:
-
-    GET /health
-
----
-## 🐳 Como Rodar com Docker Compose
-
-Se você tiver **Docker** instalado, pode subir a aplicação e o banco MySQL com um único comando.
-
-Na raiz do projeto:
-
-```bash
-docker compose up --build
 
 ## 🔐 Autenticação (JWT)
 
-### Registro de usuário
+### Registro
 
-    POST /api/auth/register
-    Content-Type: application/json
+`POST /api/auth/register`
 
-    {
-      "name":   "Test User",
-      "email":  "teste@example.com",
-      "password": "senha123"
-    }
+~~~json
+{
+  "name": "Test User",
+  "email": "teste@example.com",
+  "password": "senha123"
+}
+~~~
 
 ### Login
 
-    POST /api/auth/login
-    Content-Type: application/json
+`POST /api/auth/login`
 
-    {
-      "email":  "teste@example.com",
-      "password": "senha123"
-    }
+~~~json
+{
+  "email": "teste@example.com",
+  "password": "senha123"
+}
+~~~
 
 Resposta (exemplo):
 
-    {
-      "token": "<JWT_AQUI>",
-      "type": "Bearer"
-    }
+~~~json
+{
+  "token": "…",
+  "type": "Bearer"
+}
+~~~
 
-Usar o token nos demais endpoints protegidos:
+Usar o token nos endpoints protegidos:
 
-    Authorization: Bearer <JWT_AQUI>
+`Authorization: Bearer <token>`
 
 Rotas públicas:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /health`
+- `/v3/api-docs/**`
+- `/swagger-ui/**`
 
-- POST /api/auth/register  
-- POST /api/auth/login  
-- GET  /health  
+## ✅ Testes
 
-Todas as outras rotas exigem JWT válido.
+Dentro de `backend/`:
 
----
+~~~bash
+mvn test
+~~~
 
-## 📦 Produtos
+## 📚 Documentação detalhada
 
-### Regras
-
-- CRUD completo.
-- Paginação e filtro opcional por nome.
-- Validações:
-  - name: obrigatório, até 120 caracteres;
-  - price: obrigatório, >= 0;
-  - stock: obrigatório, >= 0.
-
-### Endpoints
-
-Listar (paginado):
-
-    GET /api/products?page=0&size=10
-    GET /api/products?name=mouse&page=0&size=10
-
-Buscar por ID:
-
-    GET /api/products/{id}
-
-Criar:
-
-    POST /api/products
-    Authorization: Bearer <token>
-    Content-Type: application/json
-
-    {
-      "name":  "Teclado Mecânico",
-      "price": 250.00,
-      "stock": 10
-    }
-
-Atualizar:
-
-    PUT /api/products/{id}
-    Authorization: Bearer <token>
-    Content-Type: application/json
-
-    {
-      "name":  "Teclado Mecânico RGB",
-      "price": 270.00,
-      "stock": 8
-    }
-
-Deletar:
-
-    DELETE /api/products/{id}
-    Authorization: Bearer <token>
-
-Erros comuns (corpo JSON):
-
-- 404 – Product not found  
-- 400 – Dados inválidos (campos com erro)
-
----
-
-## 🧾 Pedidos
-
-Um pedido é composto por:
-
-- cabeçalho (`Order`): id, número, status, total, datas;
-- itens (`OrderItem`): produto, quantidade, preço unitário, subtotal.
-
-### Regras de negócio
-
-- Ao criar pedido:
-  - produto deve existir;
-  - verificar **estoque suficiente**;
-  - decrementar estoque dos produtos;
-  - calcular valor total do pedido;
-  - status inicial: `PENDING`.
-
-- Atualização de status:  
-  `PENDING`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`.
-
-### Endpoints
-
-Criar pedido:
-
-    POST /api/orders
-    Authorization: Bearer <token>
-    Content-Type: application/json
-
-    {
-      "items": [
-        { "productId": 1, "quantity": 2 },
-        { "productId": 2, "quantity": 1 }
-      ]
-    }
-
-Possíveis respostas:
-
-- 201 – criado com sucesso  
-- 404 – produto não encontrado  
-
-      { "error": "Produto não encontrado", "status": 404 }
-
-- 409 – estoque insuficiente  
-
-      { "error": "Estoque insuficiente para o produto: Teclado Mecânico", "status": 409 }
-
-Buscar pedido por ID:
-
-    GET /api/orders/{id}
-    Authorization: Bearer <token>
-
-Resposta (exemplo):
-
-    {
-      "id": 1,
-      "orderNumber": "ORD-1763429365028",
-      "status": "PENDING",
-      "total": 650.00,
-      "items": [
-        {
-          "productId": 1,
-          "productName": "Teclado Mecânico",
-          "quantity": 2,
-          "unitPrice": 250.00,
-          "subtotal": 500.00
-        },
-        {
-          "productId": 2,
-          "productName": "Mouse Gamer",
-          "quantity": 1,
-          "unitPrice": 150.00,
-          "subtotal": 150.00
-        }
-      ]
-    }
-
-Listar pedidos (paginado):
-
-    GET /api/orders?page=0&size=20
-    Authorization: Bearer <token>
-
-Atualizar status:
-
-    PUT /api/orders/{id}/status?status=CONFIRMED
-    Authorization: Bearer <token>
-
-Cancelar / deletar:
-
-    DELETE /api/orders/{id}
-    Authorization: Bearer <token>
-
-Se o pedido não existir:
-
-    { "error": "Pedido não encontrado", "status": 404 }
-
----
-
-## ❗ Tratamento de Erros
-
-A classe `ApiExceptionHandler` centraliza o tratamento de exceções e devolve JSON padronizado, por exemplo:
-
-    {
-      "error": "Pedido não encontrado",
-      "status": 404
-    }
-
-Para erros de validação:
-
-    {
-      "status": 400,
-      "error": "Validation failed",
-      "fields": {
-        "name": "não pode ser nulo",
-        "price": "deve ser maior ou igual a 0"
-      }
-    }
-
----
-
-## 🧪 Testes
-
-Executar testes:
-
-    mvn test
-
-Principais testes:
-
-- `ProductControllerTest`
-  - testa CRUD de produtos via MockMvc.
-- `OrderControllerTest`
-  - testa criação de pedidos;
-  - erro de estoque insuficiente (HTTP 409);
-  - busca de pedido por ID, etc.
-
-Os testes usam `@SpringBootTest`, `@AutoConfigureMockMvc` e transações para isolar o estado.
-
----
-
-## 🚀 Ideias de Evolução
-
-- Documentação da API com Swagger (SpringDoc OpenAPI).
-- Módulo de clientes (Customer) e relacionamento com pedidos.
-- Filtros avançados na listagem de pedidos.
-- Mais testes unitários e de integração.
-- Dockerfile + docker-compose (app + MySQL).
-
----
-
-## 📌 Sobre este projeto
-
-Este repositório é mantido como portfólio, com objetivo de demonstrar práticas de engenharia (documentação, testes, segurança e manutenibilidade).
-
-## 📌 Documentação da API
-
-A documentação detalhada da API (autenticação, produtos, pedidos, erros e exemplos de JSON) está em:
+A documentação detalhada (regras, autorização, endpoints e exemplos) está em:
 
 - `backend/backend-README.md`
-
