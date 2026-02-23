@@ -51,5 +51,10 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Build and test
-        run: mvn -B -ntp clean test
+      - name: Garantir permissão do Maven Wrapper
+        run: chmod +x ./mvnw
+
+      - name: Build e testes
+        run: ./mvnw -B -ntp clean test
+
+        
