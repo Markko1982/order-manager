@@ -11,6 +11,9 @@ Back-end em **Java 17 + Spring Boot 3**, com:
 Este README é focado **somente na API** (`/backend`).  
 Para visão geral do projeto (motivação, features, etc.), veja o `README.md` da **raiz do repositório**.
 
+> Execução local (subir API + banco, variáveis e testes) é **single source of truth** em:
+> - [`docs/EXECUCAO_LOCAL.md`](../docs/EXECUCAO_LOCAL.md)
+
 ---
 
 ## 🔧 Arquitetura & Organização
@@ -77,29 +80,13 @@ jwt.expiration=${JWT_EXPIRATION:86400000}  # 24h em ms
 
 ---
 
-## ▶️ Como rodar a API
+## ▶️ Execução local (single source of truth)
 
-Dentro da pasta `backend`:
+A execução local (Docker Compose ou rodando a API no host), variáveis de ambiente e como rodar testes estão documentados em:
 
-```bash
-mvn clean package
+- [`docs/EXECUCAO_LOCAL.md`](../docs/EXECUCAO_LOCAL.md)
 
-mvn spring-boot:run
-```
-
-A API ficará disponível em:
-
-```text
-http://localhost:8080
-```
-
-Health check simples:
-
-```http
-GET /health
-```
-
-Resposta esperada: string indicando que a API está funcionando.
+> Este README foca na API (arquitetura, endpoints e autorização). A execução fica centralizada no arquivo acima.
 
 ---
 
@@ -266,12 +253,9 @@ O controller de categorias não utiliza `@PreAuthorize` específico, então vale
 
 ## 🧪 Testes
 
-Para rodar os testes do backend:
+Como os testes dependem de banco (MySQL), pré-requisitos e formas de execução estão documentados em:
 
-```bash
-cd backend
-mvn test
-```
+- [`docs/EXECUCAO_LOCAL.md`](../docs/EXECUCAO_LOCAL.md)
 
 Tipos de testes já presentes no projeto:
 
@@ -301,12 +285,7 @@ Sugestão de fluxo de trabalho ao implementar uma nova feature:
    ```
 
 3. Implementar a mudança (controller/service/repository/tests).
-4. Rodar os testes:
-
-   ```bash
-   mvn test
-   ```
-
+4. Rodar os testes (ver `docs/EXECUCAO_LOCAL.md`).
 5. Conferir arquivos alterados:
 
    ```bash
