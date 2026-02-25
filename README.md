@@ -29,80 +29,13 @@ API REST em **Java 17 / Spring Boot 3** para gerenciamento de **produtos** e **p
 
 - `docker-compose.yml` na raiz (sobe app + banco)
 - `backend/` (API Spring Boot)
+- `docs/` (documentação de execução)
 
-Documentação detalhada da API: **`backend/backend-README.md`**.
+## ▶️ Execução local (single source of truth)
 
-## ▶️ Como rodar com Docker Compose (recomendado)
+A execução local (com Docker Compose ou rodando a API no host), variáveis de ambiente e como rodar testes estão documentados em:
 
-### 1) Preparar variáveis de ambiente
-
-Na raiz do projeto:
-
-~~~bash
-cp .env.example .env
-~~~
-
-> Ajuste os valores no `.env` (principalmente `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` e `JWT_SECRET`).
-
-### 2) Subir API + MySQL
-
-~~~bash
-docker compose up --build
-~~~
-
-A API ficará em:
-
-- `http://localhost:8080`
-
-Health check:
-
-- `GET /health`
-
-Swagger UI (se habilitado):
-
-- `http://localhost:8080/swagger-ui/index.html`
-
-> Observação: por padrão o MySQL **não expõe porta** para o host. Se você precisar acessar o banco fora do Docker, descomente a seção `ports` do serviço `db` no `docker-compose.yml`.
-
-### Parar e limpar
-
-~~~bash
-docker compose down -v
-~~~
-
-## ▶️ Como rodar localmente (sem Docker)
-
-Pré-requisitos:
-- Java 17
-- Maven
-- MySQL 8 rodando localmente
-
-### Banco (exemplo)
-
-~~~sql
-CREATE DATABASE order_manager;
-CREATE USER 'order_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
-GRANT ALL PRIVILEGES ON order_manager.* TO 'order_user'@'localhost';
-FLUSH PRIVILEGES;
-~~~
-
-### Subir a API
-
-Dentro de `backend/`:
-
-~~~bash
-mvn clean package
-mvn spring-boot:run
-~~~
-
-Config padrão (pode sobrescrever via variáveis de ambiente):
-
-- `DB_URL` (opcional)
-- `DB_USER` (opcional)
-- `DB_PASSWORD` (opcional)
-- `PORT` (opcional)
-- `JWT_SECRET` (**recomendado** sempre definir fora do repo)
-- `JWT_EXPIRATION` (opcional)
+- `docs/EXECUCAO_LOCAL.md`
 
 ## 🔐 Autenticação (JWT)
 
@@ -151,14 +84,12 @@ Rotas públicas:
 
 ## ✅ Testes
 
-Dentro de `backend/`:
+Como os testes dependem de banco (MySQL), os pré-requisitos e formas de execução estão em:
 
-~~~bash
-mvn test
-~~~
+- `docs/EXECUCAO_LOCAL.md`
 
 ## 📚 Documentação detalhada
 
-A documentação detalhada (regras, autorização, endpoints e exemplos) está em:
+- Execução local (API + banco + testes): `docs/EXECUCAO_LOCAL.md`
+- Documentação detalhada da API (regras, autorização, endpoints e exemplos): `backend/backend-README.md`
 
-- `backend/backend-README.md`
