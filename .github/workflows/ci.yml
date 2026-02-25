@@ -55,6 +55,6 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Build e testes
-        run: ./mvnw -B -ntp clean test
+        run: ./mvnw -B -ntp clean verify
 
-        
+
