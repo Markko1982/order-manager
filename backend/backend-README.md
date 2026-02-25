@@ -42,7 +42,6 @@ A aplicação espera um MySQL acessível (por padrão local):
 spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/order_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
 spring.datasource.username=${DB_USER:order_user}
 spring.datasource.password=${DB_PASSWORD:ChangeMe123!}
-
 ```
 
 Você pode:
@@ -68,8 +67,6 @@ Arquivos atuais:
 
 No arquivo `src/main/resources/application.properties`:
 
-```properties
-```md
 ```properties
 # JWT Configuration
 jwt.secret=${JWT_SECRET:CHANGE_ME_DEV_ONLY}
@@ -374,3 +371,4 @@ Este backend foi estruturado para estudo/mentoria, mas já segue práticas usada
 - Autorização baseada em roles (`USER` / `ADMIN`).  
 - Documentação por README + OpenAPI.  
 - Testes cobrindo endpoints críticos e regras de segurança.
+
