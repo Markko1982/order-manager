@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.example.ordermanager.support.IntegrationTestBase;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,10 +18,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class CategoryControllerAuthTest {
+class CategoryControllerAuthTest extends IntegrationTestBase {
 
     @Autowired
     MockMvc mockMvc;
@@ -55,16 +54,16 @@ class CategoryControllerAuthTest {
     @Test
     void post_categories_sem_autenticacao_deve_retornar_403() throws Exception {
         mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria Teste")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria Teste")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void put_categories_sem_autenticacao_deve_retornar_403() throws Exception {
         mockMvc.perform(put("/api/categories/{id}", categoryId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria Atualizada")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria Atualizada")))
                 .andExpect(status().isForbidden());
     }
 
@@ -110,8 +109,8 @@ class CategoryControllerAuthTest {
     @Test
     void post_categories_com_user_deve_retornar_403() throws Exception {
         mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria X")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria X")))
                 .andExpect(status().isForbidden());
     }
 
@@ -120,8 +119,8 @@ class CategoryControllerAuthTest {
     void post_categories_com_admin_deve_retornar_sucesso() throws Exception {
         // aqui vamos validar o status real do controller
         mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria Nova")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria Nova")))
                 .andExpect(status().is2xxSuccessful());
     }
 
@@ -129,8 +128,8 @@ class CategoryControllerAuthTest {
     @Test
     void put_categories_com_user_deve_retornar_403() throws Exception {
         mockMvc.perform(put("/api/categories/{id}", categoryId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria Atualizada")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria Atualizada")))
                 .andExpect(status().isForbidden());
     }
 
@@ -138,8 +137,8 @@ class CategoryControllerAuthTest {
     @Test
     void put_categories_com_admin_deve_retornar_sucesso() throws Exception {
         mockMvc.perform(put("/api/categories/{id}", categoryId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson("Categoria Atualizada")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson("Categoria Atualizada")))
                 .andExpect(status().is2xxSuccessful());
     }
 

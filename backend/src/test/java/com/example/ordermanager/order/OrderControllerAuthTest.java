@@ -5,11 +5,13 @@ import com.example.ordermanager.auth.UserRole;
 import com.example.ordermanager.auth.UserRepository;
 import com.example.ordermanager.product.Product;
 import com.example.ordermanager.product.ProductRepository;
+import com.example.ordermanager.support.IntegrationTestBase;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,11 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
-
-@SpringBootTest
-@AutoConfigureMockMvc // aqui os filtros de segurança estão ATIVOS (addFilters = true por padrão)
+@AutoConfigureMockMvc
 @Transactional
-class OrderControllerAuthTest {
+class OrderControllerAuthTest extends IntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,11 +76,12 @@ class OrderControllerAuthTest {
         // Act + Assert: sem usuário autenticado → deve dar 401
         mockMvc.perform(get("/api/orders/{id}", order.getId()))
                 .andExpect(status().isForbidden());
-        // Aqui não validamos o body porque o handler global não trata 401 explicitamente.
+        // Aqui não validamos o body porque o handler global não trata 401
+        // explicitamente.
     }
 
     @Test
-    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    @WithMockUser(username = "user@test.com", roles = { "USER" })
     void getOrderById_withUserRoleUser_returnsOk() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
@@ -94,7 +95,7 @@ class OrderControllerAuthTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    @WithMockUser(username = "admin@test.com", roles = { "ADMIN" })
     void getOrderById_withUserRoleAdmin_returnsOk() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
@@ -107,8 +108,7 @@ class OrderControllerAuthTest {
                 .andExpect(jsonPath("$.total").isNumber());
     }
 
-
-        @Test
+    @Test
     void getOrders_withoutAuthentication_returnsForbidden() throws Exception {
         // Act + Assert: sem usuário autenticado → deve bloquear o acesso
         mockMvc.perform(get("/api/orders"))
@@ -116,7 +116,7 @@ class OrderControllerAuthTest {
     }
 
     @Test
-    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    @WithMockUser(username = "user@test.com", roles = { "USER" })
     void getOrders_withUserRoleUser_returnsOk() throws Exception {
         // Arrange: garante que existe pelo menos um pedido na base
         createSimpleOrder();
@@ -127,7 +127,7 @@ class OrderControllerAuthTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    @WithMockUser(username = "admin@test.com", roles = { "ADMIN" })
     void getOrders_withUserRoleAdmin_returnsOk() throws Exception {
         // Arrange: garante que existe pelo menos um pedido na base
         createSimpleOrder();
@@ -137,44 +137,43 @@ class OrderControllerAuthTest {
                 .andExpect(status().isOk());
     }
 
-        @Test
+    @Test
     void updateOrderStatus_withoutAuthentication_returnsForbidden() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
 
         // Act + Assert: sem usuário autenticado → deve bloquear (403)
         mockMvc.perform(put("/api/orders/{id}/status", order.getId())
-                        .param("status", "CONFIRMED"))
+                .param("status", "CONFIRMED"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    @WithMockUser(username = "user@test.com", roles = { "USER" })
     void updateOrderStatus_withUserRoleUser_returnsForbidden() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
 
         // Act + Assert: usuário autenticado mas com role USER → não pode alterar status
         mockMvc.perform(put("/api/orders/{id}/status", order.getId())
-                        .param("status", "CONFIRMED"))
+                .param("status", "CONFIRMED"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    @WithMockUser(username = "admin@test.com", roles = { "ADMIN" })
     void updateOrderStatus_withUserRoleAdmin_returnsOk() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
 
         // Act + Assert: ADMIN pode alterar status → 200 OK
         mockMvc.perform(put("/api/orders/{id}/status", order.getId())
-                        .param("status", "CONFIRMED"))
+                .param("status", "CONFIRMED"))
                 .andExpect(status().isOk());
         // melhoria futura: validar no banco se o status realmente mudou
     }
 
-
-        @Test
+    @Test
     void deleteOrder_withoutAuthentication_returnsForbidden() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
@@ -185,7 +184,7 @@ class OrderControllerAuthTest {
     }
 
     @Test
-    @WithMockUser(username = "user@test.com", roles = {"USER"})
+    @WithMockUser(username = "user@test.com", roles = { "USER" })
     void deleteOrder_withUserRoleUser_returnsForbidden() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
@@ -196,7 +195,7 @@ class OrderControllerAuthTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
+    @WithMockUser(username = "admin@test.com", roles = { "ADMIN" })
     void deleteOrder_withUserRoleAdmin_returnsNoContent() throws Exception {
         // Arrange: cria um pedido
         Order order = createSimpleOrder();
@@ -206,6 +205,5 @@ class OrderControllerAuthTest {
                 .andExpect(status().isNoContent());
         // melhoria futura: checar no repositório se o pedido realmente foi removido
     }
-
 
 }
