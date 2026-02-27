@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.example.ordermanager.support.IntegrationTestBase;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,10 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc // filtros ativos (segurança ligada)
 @Transactional // cada teste roda e faz rollback (padrão pra integração)
-class ProductControllerAuthTest {
+class ProductControllerAuthTest extends IntegrationTestBase {
 
     @Autowired
     MockMvc mockMvc;
@@ -61,16 +60,16 @@ class ProductControllerAuthTest {
     @Test
     void post_products_sem_autenticacao_deve_retornar_403() throws Exception {
         mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto Teste", 10.0, 5)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto Teste", 10.0, 5)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void put_products_sem_autenticacao_deve_retornar_403() throws Exception {
         mockMvc.perform(put("/api/products/{id}", productId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto Atualizado", 12.0, 7)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto Atualizado", 12.0, 7)))
                 .andExpect(status().isForbidden());
     }
 
@@ -118,8 +117,8 @@ class ProductControllerAuthTest {
     @Test
     void post_products_com_user_deve_retornar_403() throws Exception {
         mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto X", 10.0, 5)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto X", 10.0, 5)))
                 .andExpect(status().isForbidden());
     }
 
@@ -127,8 +126,8 @@ class ProductControllerAuthTest {
     @Test
     void post_products_com_admin_deve_retornar_201_e_location() throws Exception {
         mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto Novo", 20.0, 3)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto Novo", 20.0, 3)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/api/products/")));
     }
@@ -137,8 +136,8 @@ class ProductControllerAuthTest {
     @Test
     void put_products_com_user_deve_retornar_403() throws Exception {
         mockMvc.perform(put("/api/products/{id}", productId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto Atualizado", 12.0, 7)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto Atualizado", 12.0, 7)))
                 .andExpect(status().isForbidden());
     }
 
@@ -146,8 +145,8 @@ class ProductControllerAuthTest {
     @Test
     void put_products_com_admin_deve_retornar_200() throws Exception {
         mockMvc.perform(put("/api/products/{id}", productId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(productJson("Produto Atualizado", 12.0, 7)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productJson("Produto Atualizado", 12.0, 7)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Produto Atualizado"));
     }

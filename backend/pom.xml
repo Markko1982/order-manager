@@ -18,6 +18,8 @@
 
   <properties>
     <java.version>17</java.version>
+    <!-- Evita o erro do Testcontainers/docker-java tentando usar API v1.32 -->
+    <docker.api.version>1.44</docker.api.version>
   </properties>
 
   <dependencies>
@@ -26,14 +28,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-
-        <!-- Utilitários de teste para Spring Security (@WithMockUser, etc) -->
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-
 
     <!-- JPA -->
     <dependency>
@@ -70,7 +64,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
-
 
     <!-- JWT Support -->
     <dependency>
@@ -111,6 +104,30 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Utilitários de teste para Spring Security (@WithMockUser, etc) -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Testcontainers (MySQL) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -119,26 +136,38 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
-    
-    <plugin>
-  <groupId>org.apache.maven.plugins</groupId>
-  <artifactId>maven-enforcer-plugin</artifactId>
-  <version>3.6.2</version>
-  <executions>
-    <execution>
-      <id>enforce-no-duplicate-dependencies</id>
-      <phase>validate</phase>
-      <goals>
-        <goal>enforce</goal>
-      </goals>
-      <configuration>
-        <rules>
-          <banDuplicatePomDependencyVersions/>
-        </rules>
-      </configuration>
-    </execution>
-  </executions>
-</plugin>
-</plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.6.2</version>
+        <executions>
+          <execution>
+            <id>enforce-no-duplicate-dependencies</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <banDuplicatePomDependencyVersions/>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Força a API do Docker usada pelo docker-java/Testcontainers durante os testes -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <environmentVariables>
+            <DOCKER_API_VERSION>${docker.api.version}</DOCKER_API_VERSION>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
+
