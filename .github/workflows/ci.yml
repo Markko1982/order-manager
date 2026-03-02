@@ -57,4 +57,12 @@ jobs:
       - name: Build e testes
         run: ./mvnw -B -ntp clean verify
 
-
+      - name: Upload relatório JaCoCo (HTML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: |
+            target/site/jacoco/
+            target/jacoco.exec
+          if-no-files-found: warn
+          
