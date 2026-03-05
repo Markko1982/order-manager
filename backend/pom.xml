@@ -21,6 +21,9 @@
     <!-- Evita o erro do Testcontainers/docker-java tentando usar API v1.32 -->
     <docker.api.version>1.44</docker.api.version>
     <jacoco.version>0.8.12</jacoco.version>
+    <!-- Quality gate (início): valores baixos para não bloquear o time no começo -->
+    <jacoco.min.instruction.coverage>0.10</jacoco.min.instruction.coverage>
+    <jacoco.min.branch.coverage>0.05</jacoco.min.branch.coverage>
   </properties>
 
   <dependencies>
@@ -173,6 +176,7 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>${jacoco.version}</version>
+
         <executions>
           <execution>
             <id>prepare-agent</id>
@@ -181,12 +185,54 @@
               <goal>prepare-agent</goal>
             </goals>
           </execution>
+
           <execution>
             <id>report</id>
             <phase>verify</phase>
             <goals>
               <goal>report</goal>
             </goals>
+            <configuration>
+              <excludes>
+                <exclude>**/dto/**</exclude>
+                <exclude>**/*Config*</exclude>
+                <exclude>**/*Application*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <haltOnFailure>true</haltOnFailure>
+              <excludes>
+                <exclude>**/dto/**</exclude>
+                <exclude>**/*Config*</exclude>
+                <exclude>**/*Application*</exclude>
+              </excludes>
+
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${jacoco.min.instruction.coverage}</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${jacoco.min.branch.coverage}</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>
