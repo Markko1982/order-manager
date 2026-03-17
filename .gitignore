@@ -2,3 +2,13 @@
 .env
 .env.*
 !.env.example
+
+# Backups / arquivos temporários gerados manualmente
+*.bak
+*.bak_*
+*.backup
+*.backup_*
+*.orig
+*.tmp
+*.swp
+pom.new
